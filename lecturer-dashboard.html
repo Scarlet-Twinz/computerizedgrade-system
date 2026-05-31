@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -306,4 +307,314 @@
         loadDashboard();
     </script>
 </body>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecturer Dashboard - JPTS University</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: #28a745; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar { width: 260px; background: white; position: fixed; height: 100%; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar-item { padding: 12px 15px; margin: 5px 0; cursor: pointer; border-radius: 10px; color: #333; transition: 0.3s; }
+        .sidebar-item:hover, .sidebar-item.active { background: #28a745; color: white; }
+        .main-content { margin-left: 280px; padding: 25px; }
+        .data-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-control, .form-select { border-radius: 10px; padding: 10px; margin-bottom: 10px; width: 100%; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; }
+        .btn-primary { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .btn-secondary { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .btn-danger { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
+        .upload-area { border: 2px dashed #28a745; border-radius: 15px; padding: 30px; text-align: center; cursor: pointer; transition: 0.3s; margin-bottom: 20px; }
+        .upload-area:hover { background: #f8f9fa; border-color: #0a1e3c; }
+        .upload-area.drag-over { background: #e8f5e9; border-color: #28a745; }
+        .toast-msg { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; animation: slideIn 0.3s ease; border-radius: 10px; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width: 768px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div><i class="fas fa-chalkboard-user"></i> JPTS University - Lecturer Portal</div>
+        <div><span id="lecturerName"></span> <button class="btn-logout ms-3" id="logoutBtn">Logout</button></div>
+    </div>
+    
+    <div class="sidebar">
+        <h5 class="text-center mb-3">Lecturer Menu</h5>
+        <div class="sidebar-item active" onclick="loadDashboard()">Dashboard</div>
+        <div class="sidebar-item" onclick="loadEnterScores()">Enter Scores</div>
+        <div class="sidebar-item" onclick="loadBulkUpload()">Bulk Upload (CSV)</div>
+        <div class="sidebar-item" onclick="loadMyEntries()">My Entries</div>
+    </div>
+    
+    <div class="main-content" id="mainContent">
+        <div class="text-center py-5"><div class="spinner-border text-primary"></div><p>Loading...</p></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'lecturer') window.location.href = 'login.html';
+        document.getElementById('lecturerName').innerHTML = currentUser.name;
+        
+        let allStudents = JSON.parse(localStorage.getItem('all_students')) || [];
+        let allCourses = JSON.parse(localStorage.getItem('all_courses')) || [];
+        let pendingScores = JSON.parse(localStorage.getItem('pending_scores')) || [];
+        
+        function showMessage(msg, type) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} toast-msg`;
+            toast.innerHTML = msg + '<button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function calculateGrade(score) {
+            if (score >= 70) return { grade: 'A', point: 5.0 };
+            if (score >= 60) return { grade: 'B', point: 4.0 };
+            if (score >= 50) return { grade: 'C', point: 3.0 };
+            if (score >= 45) return { grade: 'D', point: 2.0 };
+            if (score >= 40) return { grade: 'E', point: 1.0 };
+            return { grade: 'F', point: 0.0 };
+        }
+        
+        function saveData() { localStorage.setItem('pending_scores', JSON.stringify(pendingScores)); }
+        
+        function loadDashboard() {
+            document.getElementById('mainContent').innerHTML = `
+                <div class="data-card">
+                    <h5>Lecturer Dashboard</h5>
+                    <p>Welcome, ${currentUser.name}!</p>
+                    <p>Total Scores Entered: ${pendingScores.filter(s => s.lecturerId === currentUser.id).length}</p>
+                    <p>Pending HOD Approval: ${pendingScores.filter(s => s.status === 'pending' && s.lecturerId === currentUser.id).length}</p>
+                    <button class="btn-primary" onclick="loadEnterScores()">Enter New Scores</button>
+                    <button class="btn-secondary" onclick="loadBulkUpload()">Bulk Upload CSV</button>
+                </div>
+            `;
+        }
+        
+        function loadEnterScores() {
+            if (allStudents.length === 0) {
+                document.getElementById('mainContent').innerHTML = `<div class="data-card"><div class="alert alert-warning">No students found. Admin needs to add students first.</div></div>`;
+                return;
+            }
+            if (allCourses.length === 0) {
+                document.getElementById('mainContent').innerHTML = `<div class="data-card"><div class="alert alert-warning">No courses found. Admin needs to add courses first.</div></div>`;
+                return;
+            }
+            
+            let studentOptions = '<option value="">Select Student</option>';
+            allStudents.forEach(s => { studentOptions += `<option value="${s.id}|${s.name}">${s.name} (${s.id})</option>`; });
+            
+            let courseOptions = '<option value="">Select Course</option>';
+            allCourses.forEach(c => { courseOptions += `<option value="${c.code}|${c.title}|${c.credit}">${c.code} - ${c.title} (${c.credit} credits)</option>`; });
+            
+            document.getElementById('mainContent').innerHTML = `
+                <div class="data-card">
+                    <h5>Enter Student Scores</h5>
+                    <div class="row">
+                        <div class="col-md-6"><label>Select Student</label><select id="studentSelect" class="form-select">${studentOptions}</select></div>
+                        <div class="col-md-6"><label>Select Course</label><select id="courseSelect" class="form-select">${courseOptions}</select></div>
+                        <div class="col-md-6"><label>CA Score (0-40)</label><input type="number" id="caScore" class="form-control" placeholder="Enter CA score"></div>
+                        <div class="col-md-6"><label>Exam Score (0-60)</label><input type="number" id="examScore" class="form-control" placeholder="Enter Exam score"></div>
+                        <div class="col-12 mt-3"><div id="gradePreview" class="alert alert-info">Total: 0 | Grade: -</div></div>
+                        <div class="col-12"><button class="btn-primary" onclick="submitScore()">Submit Score for Approval</button></div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('caScore').oninput = updatePreview;
+            document.getElementById('examScore').oninput = updatePreview;
+        }
+        
+        function updatePreview() {
+            const ca = parseInt(document.getElementById('caScore').value) || 0;
+            const exam = parseInt(document.getElementById('examScore').value) || 0;
+            const total = ca + exam;
+            const grade = calculateGrade(total);
+            document.getElementById('gradePreview').innerHTML = `Total: ${total} | Grade: ${grade.grade} (${grade.point} points)`;
+        }
+        
+        function submitScore() {
+            const studentValue = document.getElementById('studentSelect').value;
+            const courseValue = document.getElementById('courseSelect').value;
+            const ca = parseInt(document.getElementById('caScore').value) || 0;
+            const exam = parseInt(document.getElementById('examScore').value) || 0;
+            
+            if (!studentValue || !courseValue) { showMessage("Please select student and course", "danger"); return; }
+            
+            const [studentId, studentName] = studentValue.split('|');
+            const [courseCode, courseTitle, credit] = courseValue.split('|');
+            const total = ca + exam;
+            const grade = calculateGrade(total);
+            
+            pendingScores.push({
+                studentId, studentName, courseCode, courseTitle,
+                credit: parseInt(credit), ca, exam, total,
+                grade: grade.grade, gradePoint: grade.point,
+                status: "pending", lecturerId: currentUser.id,
+                date: new Date().toISOString()
+            });
+            saveData();
+            showMessage(`Score for ${studentName} in ${courseCode} submitted for HOD approval!`, "success");
+            document.getElementById('studentSelect').value = "";
+            document.getElementById('courseSelect').value = "";
+            document.getElementById('caScore').value = "";
+            document.getElementById('examScore').value = "";
+            updatePreview();
+            loadMyEntries();
+        }
+        
+        // ========== BULK UPLOAD CSV ==========
+        function loadBulkUpload() {
+            document.getElementById('mainContent').innerHTML = `
+                <div class="data-card">
+                    <h5>Bulk Upload Scores (CSV File)</h5>
+                    <div class="alert alert-info">
+                        <strong>CSV Format:</strong><br>
+                        student_matric,course_code,ca_score,exam_score<br>
+                        Example:<br>
+                        JPTS/2024/001,CSC101,35,50<br>
+                        JPTS/2024/002,CSC101,28,45
+                    </div>
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fas fa-cloud-upload-alt fa-3x mb-3"></i>
+                        <p>Drag & drop CSV file here or click to browse</p>
+                        <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                        <button class="btn-primary" onclick="document.getElementById('csvFile').click()">Select CSV File</button>
+                    </div>
+                    <div id="uploadPreview" class="mt-3" style="display: none;">
+                        <h6>Preview:</h6>
+                        <div class="table-responsive"><table class="table" id="previewTable"></table></div>
+                        <button class="btn-primary" onclick="processBulkUpload()">Process Upload</button>
+                    </div>
+                </div>
+            `;
+            
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('csvFile');
+            
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+            uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type === 'text/csv') processCSV(file);
+            });
+            fileInput.addEventListener('change', (e) => { if (e.target.files[0]) processCSV(e.target.files[0]); });
+        }
+        
+        let uploadedData = [];
+        
+        function processCSV(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                const lines = content.split('\n');
+                const headers = lines[0].split(',');
+                uploadedData = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim()) {
+                        const values = lines[i].split(',');
+                        const row = {};
+                        headers.forEach((header, index) => { row[header.trim()] = values[index]?.trim(); });
+                        uploadedData.push(row);
+                    }
+                }
+                
+                const previewDiv = document.getElementById('uploadPreview');
+                const previewTable = document.getElementById('previewTable');
+                previewTable.innerHTML = '';
+                
+                const thead = previewTable.createTHead();
+                const headerRow = thead.insertRow();
+                headers.forEach(header => { const th = document.createElement('th'); th.textContent = header; headerRow.appendChild(th); });
+                
+                const tbody = previewTable.createTBody();
+                uploadedData.slice(0, 5).forEach(row => {
+                    const tr = tbody.insertRow();
+                    headers.forEach(header => { const td = tr.insertCell(); td.textContent = row[header] || ''; });
+                });
+                
+                previewDiv.style.display = 'block';
+                showMessage(`${uploadedData.length} records loaded`, 'success');
+            };
+            reader.readAsText(file);
+        }
+        
+        async function processBulkUpload() {
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (const record of uploadedData) {
+                try {
+                    const studentQuery = await db.collection('students').where('matricNumber', '==', record.student_matric).get();
+                    if (studentQuery.empty) { errorCount++; continue; }
+                    const studentId = studentQuery.docs[0].id;
+                    const studentName = studentQuery.docs[0].data().name;
+                    
+                    const courseQuery = await db.collection('courses').where('courseCode', '==', record.course_code).get();
+                    if (courseQuery.empty) { errorCount++; continue; }
+                    const course = courseQuery.docs[0].data();
+                    
+                    const ca = parseFloat(record.ca_score) || 0;
+                    const exam = parseFloat(record.exam_score) || 0;
+                    const total = ca + exam;
+                    const grade = calculateGrade(total);
+                    
+                    pendingScores.push({
+                        studentId, studentName, courseCode: course.courseCode,
+                        courseTitle: course.courseTitle, credit: course.creditUnit,
+                        ca, exam, total, grade: grade.grade, gradePoint: grade.point,
+                        status: "pending", lecturerId: currentUser.id, date: new Date().toISOString()
+                    });
+                    successCount++;
+                } catch (error) { errorCount++; }
+            }
+            saveData();
+            showMessage(`Bulk upload complete: ${successCount} successful, ${errorCount} failed`, successCount > 0 ? 'success' : 'danger');
+            document.getElementById('uploadPreview').style.display = 'none';
+            loadMyEntries();
+        }
+        
+        function loadMyEntries() {
+            let myEntries = pendingScores.filter(s => s.lecturerId === currentUser.id);
+            let html = `<div class="data-card"><h5>My Score Entries</h5>
+                        <div class="table-responsive"><table class="table"><thead>
+                        <tr><th>Student</th><th>Course</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th><th>Status</th>
+                        </thead><tbody>`;
+            if (myEntries.length === 0) { html += `<tr><td colspan="7" class="text-center">No entries yet. Enter scores first.`; }
+            else {
+                myEntries.forEach(e => {
+                    html += `<tr>
+                        <td>${e.studentName}</p></div>
+                        <td>${e.courseCode}</p></div>
+                        <td>${e.ca}</p></div>
+                        <td>${e.exam}</p></div>
+                        <td><strong>${e.total}</strong></p></div>
+                        <td><span class="badge bg-primary">${e.grade}</span></p></div>
+                        <td><span class="badge ${e.status === 'approved' ? 'bg-success' : 'bg-warning'}">${e.status}</span></p></div>
+                    </td>`;
+                });
+            }
+            html += `</tbody>}</div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.removeItem('currentUser'); window.location.href = 'login.html'; });
+        loadDashboard();
+    </script>
+</body>
+>>>>>>> 2379ad283c51534e5bc4710a2f357dee5eeca6bd
 </html>

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -364,4 +365,372 @@
         loadDashboard();
     </script>
 </body>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - JPTS University</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: #0a1e3c; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar { width: 260px; background: white; position: fixed; height: 100%; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar-item { padding: 12px 15px; margin: 5px 0; cursor: pointer; border-radius: 10px; color: #333; transition: 0.3s; }
+        .sidebar-item:hover, .sidebar-item.active { background: #0a1e3c; color: white; }
+        .main-content { margin-left: 280px; padding: 25px; }
+        .data-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; text-align: center; display: inline-block; width: 23%; margin: 1%; }
+        .stat-card h2 { font-size: 32px; color: #0a1e3c; margin: 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; }
+        .btn-primary { background: #0a1e3c; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .btn-success { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .btn-danger { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .btn-warning { background: #ffc107; color: #333; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
+        .form-control, .form-select { border-radius: 10px; padding: 10px; margin-bottom: 10px; width: 100%; }
+        .modal-content { border-radius: 15px; }
+        @media (max-width: 768px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+        .toast-msg { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; animation: slideIn 0.3s ease; border-radius: 10px; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div><i class="fas fa-graduation-cap"></i> JPTS University - Admin Portal</div>
+        <div><span id="adminName"></span> <button class="btn-logout ms-3" id="logoutBtn">Logout</button></div>
+    </div>
+    
+    <div class="sidebar">
+        <h5 class="text-center mb-3">Admin Menu</h5>
+        <div class="sidebar-item active" onclick="loadDashboard()">Dashboard</div>
+        <div class="sidebar-item" onclick="loadStudents()">Manage Students</div>
+        <div class="sidebar-item" onclick="loadCourses()">Manage Courses</div>
+        <div class="sidebar-item" onclick="loadResults()">View Results</div>
+        <div class="sidebar-item" onclick="loadAnnouncements()">Send Announcement</div>
+    </div>
+    
+    <div class="main-content" id="mainContent">
+        <div class="text-center py-5"><div class="spinner-border text-primary"></div><p>Loading...</p></div>
+    </div>
+
+    <!-- Student Modal -->
+    <div class="modal fade" id="studentModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#0a1e3c;color:white"><h5>Add Student</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="text" id="stuName" class="form-control" placeholder="Full Name">
+                    <input type="text" id="stuId" class="form-control" placeholder="Matric Number">
+                    <input type="email" id="stuEmail" class="form-control" placeholder="Email">
+                    <select id="stuDept" class="form-select">
+                        <option>Computer Science</option><option>Engineering</option><option>Business</option>
+                    </select>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" onclick="addStudent()">Save</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Modal -->
+    <div class="modal fade" id="courseModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#0a1e3c;color:white"><h5>Add Course</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="text" id="crsCode" class="form-control" placeholder="Course Code">
+                    <input type="text" id="crsTitle" class="form-control" placeholder="Course Title">
+                    <input type="number" id="crsCredit" class="form-control" placeholder="Credit Unit">
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-success" onclick="addCourse()">Save</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Announcement Modal -->
+    <div class="modal fade" id="announcementModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#0a1e3c;color:white"><h5>Send Announcement to Students</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <label>Title</label>
+                    <input type="text" id="announcementTitle" class="form-control" placeholder="e.g., Examination Notice">
+                    <label class="mt-2">Message</label>
+                    <textarea id="announcementMessage" class="form-control" rows="4" placeholder="Write your announcement here..."></textarea>
+                    <label class="mt-2">Send to</label>
+                    <select id="announcementTarget" class="form-select">
+                        <option value="all">All Students</option>
+                        <option value="computer_science">Computer Science Department</option>
+                        <option value="engineering">Engineering Department</option>
+                        <option value="business">Business Department</option>
+                    </select>
+                </div>
+                <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-warning" onclick="sendAnnouncement()">Send Announcement</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'admin') window.location.href = 'login.html';
+        document.getElementById('adminName').innerHTML = currentUser.name;
+        
+        let allStudents = JSON.parse(localStorage.getItem('all_students')) || [];
+        let allCourses = JSON.parse(localStorage.getItem('all_courses')) || [
+            { code: "CSC101", title: "Introduction to Computer Science", credit: 3, dept: "Computer Science", level: "100" },
+            { code: "CSC102", title: "Programming Fundamentals", credit: 3, dept: "Computer Science", level: "100" },
+            { code: "CSC201", title: "Data Structures", credit: 3, dept: "Computer Science", level: "200" }
+        ];
+        let allNotifications = JSON.parse(localStorage.getItem('global_announcements')) || [];
+        
+        function saveData() {
+            localStorage.setItem('all_students', JSON.stringify(allStudents));
+            localStorage.setItem('all_courses', JSON.stringify(allCourses));
+            localStorage.setItem('global_announcements', JSON.stringify(allNotifications));
+        }
+        
+        function showMessage(msg, type) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} toast-msg`;
+            toast.innerHTML = msg + '<button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function loadDashboard() {
+            document.getElementById('mainContent').innerHTML = `
+                <div class="data-card">
+                    <h5>Admin Dashboard</h5>
+                    <p>Welcome, ${currentUser.name}!</p>
+                    <div class="row">
+                        <div class="col-md-4"><div class="stat-card"><h2>${allStudents.length}</h2><p>Students</p></div></div>
+                        <div class="col-md-4"><div class="stat-card"><h2>${allCourses.length}</h2><p>Courses</p></div></div>
+                        <div class="col-md-4"><div class="stat-card"><h2>${allNotifications.length}</h2><p>Announcements Sent</p></div></div>
+                    </div>
+                    <button class="btn-primary" onclick="showAddStudentModal()"><i class="fas fa-user-plus"></i> Add Student</button>
+                    <button class="btn-success" onclick="showAddCourseModal()"><i class="fas fa-book-plus"></i> Add Course</button>
+                    <button class="btn-warning" onclick="showAnnouncementModal()"><i class="fas fa-bullhorn"></i> Send Announcement</button>
+                </div>
+            `;
+        }
+        
+        function showAddStudentModal() { $('#studentModal').modal('show'); }
+        function showAddCourseModal() { $('#courseModal').modal('show'); }
+        function showAnnouncementModal() { $('#announcementModal').modal('show'); }
+        
+        function addStudent() {
+            const name = document.getElementById('stuName').value;
+            const id = document.getElementById('stuId').value;
+            const email = document.getElementById('stuEmail').value;
+            const dept = document.getElementById('stuDept').value;
+            if (name && id && email) {
+                allStudents.push({ name, id, email, dept });
+                saveData();
+                showMessage("Student added!", "success");
+                $('#studentModal').modal('hide');
+                document.getElementById('stuName').value = '';
+                document.getElementById('stuId').value = '';
+                document.getElementById('stuEmail').value = '';
+                loadStudents();
+            } else {
+                showMessage("Please fill all fields", "danger");
+            }
+        }
+        
+        function addCourse() {
+            const code = document.getElementById('crsCode').value;
+            const title = document.getElementById('crsTitle').value;
+            const credit = document.getElementById('crsCredit').value;
+            if (code && title && credit) {
+                allCourses.push({ code, title, credit: parseInt(credit), dept: "Computer Science", level: "100" });
+                saveData();
+                showMessage("Course added!", "success");
+                $('#courseModal').modal('hide');
+                document.getElementById('crsCode').value = '';
+                document.getElementById('crsTitle').value = '';
+                document.getElementById('crsCredit').value = '';
+                loadCourses();
+            } else {
+                showMessage("Please fill all fields", "danger");
+            }
+        }
+        
+        function sendAnnouncement() {
+            const title = document.getElementById('announcementTitle').value;
+            const message = document.getElementById('announcementMessage').value;
+            const target = document.getElementById('announcementTarget').value;
+            
+            if (!title || !message) {
+                showMessage("Please enter title and message", "danger");
+                return;
+            }
+            
+            // Create announcement object
+            const announcement = {
+                id: Date.now(),
+                title: title,
+                message: message,
+                target: target,
+                date: new Date().toISOString(),
+                read: false
+            };
+            
+            allNotifications.push(announcement);
+            saveData();
+            
+            // Also add to each student's personal notifications
+            let studentNotifications = JSON.parse(localStorage.getItem('student_notifications')) || [];
+            
+            // Filter students based on target
+            let targetStudents = [];
+            if (target === 'all') {
+                targetStudents = allStudents;
+            } else {
+                targetStudents = allStudents.filter(s => s.dept.toLowerCase().replace(' ', '_') === target);
+            }
+            
+            // Add notification to each student's list
+            targetStudents.forEach(student => {
+                studentNotifications.unshift({
+                    id: Date.now() + Math.random(),
+                    title: title,
+                    message: message,
+                    date: new Date().toISOString(),
+                    read: false,
+                    isAnnouncement: true
+                });
+            });
+            
+            localStorage.setItem('student_notifications', JSON.stringify(studentNotifications));
+            
+            showMessage(`Announcement sent to ${targetStudents.length} students!`, "success");
+            $('#announcementModal').modal('hide');
+            document.getElementById('announcementTitle').value = '';
+            document.getElementById('announcementMessage').value = '';
+            loadAnnouncements();
+        }
+        
+        function loadStudents() {
+            let html = `<div class="data-card"><h5>Student Management</h5>
+                        <button class="btn-primary" onclick="showAddStudentModal()">+ Add Student</button>
+                        <div class="table-responsive mt-3"><table class="table"><thead><tr><th>Name</th><th>Matric No</th><th>Email</th><th>Dept</th><th>Action</th></td></thead><tbody>`;
+            if (allStudents.length === 0) {
+                html += `<tr><td colspan="5" class="text-center">No students yet. Add one!</p></div></tr>`;
+            } else {
+                allStudents.forEach((s, index) => {
+                    html += `<tr>
+                        <td>${s.name}</p></div>
+                        <td>${s.id}</p></div>
+                        <td>${s.email}</p></div>
+                        <td>${s.dept}</p></div>
+                        <td><button class="btn-danger" onclick="deleteStudent(${index})">Delete</button></p></div>
+                    </tr>`;
+                });
+            }
+            html += `</tbody>}</div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        function deleteStudent(index) {
+            if (confirm("Delete this student?")) {
+                allStudents.splice(index, 1);
+                saveData();
+                showMessage("Student deleted", "success");
+                loadStudents();
+            }
+        }
+        
+        function loadCourses() {
+            let html = `<div class="data-card"><h5>Course Management</h5>
+                        <button class="btn-success" onclick="showAddCourseModal()">+ Add Course</button>
+                        <div class="table-responsive mt-3"><table class="table"><thead><tr><th>Code</th><th>Title</th><th>Credit</th><th>Dept</th><th>Action</th></tr></thead><tbody>`;
+            if (allCourses.length === 0) {
+                html += `<tr><td colspan="5" class="text-center">No courses yet. Add one!</p></div></tr>`;
+            } else {
+                allCourses.forEach((c, index) => {
+                    html += `<tr>
+                        <td>${c.code}</p></div>
+                        <td>${c.title}</p></div>
+                        <td>${c.credit}</p></div>
+                        <td>${c.dept}</p></div>
+                        <td><button class="btn-danger" onclick="deleteCourse(${index})">Delete</button></p></div>
+                    </tr>`;
+                });
+            }
+            html += `</tbody>}</div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        function deleteCourse(index) {
+            if (confirm("Delete this course?")) {
+                allCourses.splice(index, 1);
+                saveData();
+                showMessage("Course deleted", "success");
+                loadCourses();
+            }
+        }
+        
+        function loadResults() {
+            let publishedResults = JSON.parse(localStorage.getItem('published_results')) || [];
+            let html = `<div class="data-card"><h5>Published Results</h5>
+                        <div class="table-responsive"><table class="table"><thead>
+                        <tr><th>Student</th><th>Course</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th>
+                        </thead><tbody>`;
+            if (publishedResults.length === 0) {
+                html += `<tr><td colspan="6" class="text-center">No results published yet.</p></div></tr>`;
+            } else {
+                publishedResults.forEach(r => {
+                    html += `<tr>
+                        <td>${r.studentName}</p></div>
+                        <td>${r.courseCode}</p></div>
+                        <td>${r.ca}</p></div>
+                        <td>${r.exam}</p></div>
+                        <td><strong>${r.total}</strong></p></div>
+                        <td><span class="badge bg-success">${r.grade}</span></p></div>
+                    </tr>`;
+                });
+            }
+            html += `</tbody>}</div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        function loadAnnouncements() {
+            let html = `<div class="data-card"><h5>Announcement History</h5>
+                        <button class="btn-warning" onclick="showAnnouncementModal()"><i class="fas fa-plus"></i> New Announcement</button>
+                        <div class="table-responsive mt-3"><table class="table"><thead>
+                        <tr><th>Date</th><th>Title</th><th>Message</th><th>Sent To</th>
+                        </thead><tbody>`;
+            if (allNotifications.length === 0) {
+                html += `<td><td colspan="4" class="text-center">No announcements sent yet.</p></div></tr>`;
+            } else {
+                allNotifications.slice().reverse().forEach(n => {
+                    let targetText = n.target === 'all' ? 'All Students' : n.target.replace('_', ' ').toUpperCase();
+                    html += `<tr>
+                        <td>${new Date(n.date).toLocaleDateString()}</p></div>
+                        <td><strong>${n.title}</strong></p></div>
+                        <td>${n.message}</p></div>
+                        <td>${targetText}</p></div>
+                    </tr>`;
+                });
+            }
+            html += `</tbody>}</div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        });
+        
+        loadDashboard();
+    </script>
+</body>
+>>>>>>> 2379ad283c51534e5bc4710a2f357dee5eeca6bd
 </html>

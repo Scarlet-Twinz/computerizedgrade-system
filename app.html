@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -541,4 +542,549 @@
         });
     </script>
 </body>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPTS University - Complete System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        
+        /* Login Page Styles */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a1e3c 0%, #1a3a6c 100%);
+            padding: 20px;
+        }
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        .login-header { text-align: center; margin-bottom: 30px; }
+        .login-header i { font-size: 60px; color: #0a1e3c; }
+        .login-header h2 { margin-top: 15px; color: #0a1e3c; }
+        .form-control { border-radius: 10px; padding: 12px; margin-bottom: 15px; width: 100%; border: 1px solid #ddd; }
+        .btn-primary { background: #0a1e3c; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
+        .nav-tabs .nav-link.active { color: #0a1e3c; border-bottom: 3px solid #0a1e3c; font-weight: bold; }
+        
+        /* Dashboard Styles */
+        .dashboard-container { display: none; }
+        .navbar { background: #0a1e3c; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar { width: 260px; background: white; position: fixed; height: 100%; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar a { display: block; padding: 12px; color: #333; text-decoration: none; margin: 5px 0; border-radius: 8px; cursor: pointer; }
+        .sidebar a:hover { background: #0a1e3c; color: white; }
+        .main-content { margin-left: 280px; padding: 20px; }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: inline-block; width: 23%; margin: 1%; }
+        .stat-card h2 { font-size: 32px; color: #0a1e3c; margin: 0; }
+        .data-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .grade-A { background: #28a745; color: white; padding: 4px 10px; border-radius: 20px; display: inline-block; font-size: 12px; }
+        .grade-B { background: #17a2b8; color: white; padding: 4px 10px; border-radius: 20px; display: inline-block; }
+        .grade-C { background: #ffc107; color: #333; padding: 4px 10px; border-radius: 20px; display: inline-block; }
+        .grade-D { background: #fd7e14; color: white; padding: 4px 10px; border-radius: 20px; display: inline-block; }
+        .grade-E { background: #dc3545; color: white; padding: 4px 10px; border-radius: 20px; display: inline-block; }
+        .grade-F { background: #6c757d; color: white; padding: 4px 10px; border-radius: 20px; display: inline-block; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; }
+        .toast-msg { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
+        @media (max-width: 768px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } .menu-toggle { display: block; } .stat-card { width: 48%; } }
+        .menu-toggle { display: none; font-size: 24px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-5JaqF4RSs9wjmpml_2FoIi-qJj2v1Ek",
+            authDomain: "computerized-grade-syste-68717.firebaseapp.com",
+            projectId: "computerized-grade-syste-68717",
+            storageBucket: "computerized-grade-syste-68717.firebasestorage.app",
+            messagingSenderId: "802037769552",
+            appId: "1:802037769552:web:64af8460da2790967d7855"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        let currentUser = null;
+        let currentUserRole = null;
+        let currentUserName = null;
+        
+        function showMessage(msg, type) {
+            const div = document.createElement('div');
+            div.className = `alert alert-${type} toast-msg`;
+            div.innerHTML = msg + '<button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+        
+        function calculateGrade(score) {
+            if (score >= 70) return { grade: 'A', point: 5.0 };
+            if (score >= 60) return { grade: 'B', point: 4.0 };
+            if (score >= 50) return { grade: 'C', point: 3.0 };
+            if (score >= 45) return { grade: 'D', point: 2.0 };
+            if (score >= 40) return { grade: 'E', point: 1.0 };
+            return { grade: 'F', point: 0.0 };
+        }
+        
+        // ========== LOGIN PAGE ==========
+        function showLoginPage() {
+            document.getElementById('app').innerHTML = `
+                <div class="login-container">
+                    <div class="login-card">
+                        <div class="login-header">
+                            <i class="fas fa-graduation-cap"></i>
+                            <h2>JPTS University</h2>
+                            <p>Student Information System</p>
+                        </div>
+                        <ul class="nav nav-tabs mb-4" id="authTab">
+                            <li class="nav-item w-50"><a class="nav-link active" data-bs-toggle="tab" href="#login">Login</a></li>
+                            <li class="nav-item w-50"><a class="nav-link" data-bs-toggle="tab" href="#signup">Sign Up</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="login">
+                                <form id="loginForm">
+                                    <input type="email" id="loginEmail" class="form-control" placeholder="Email Address" required>
+                                    <input type="password" id="loginPassword" class="form-control" placeholder="Password" required>
+                                    <button type="submit" class="btn-primary">Login</button>
+                                </form>
+                            </div>
+                            <div class="tab-pane" id="signup">
+                                <form id="signupForm">
+                                    <input type="text" id="signupName" class="form-control" placeholder="Full Name" required>
+                                    <input type="email" id="signupEmail" class="form-control" placeholder="Email Address" required>
+                                    <input type="text" id="signupNumber" class="form-control" placeholder="Matric/Staff Number" required>
+                                    <select id="signupRole" class="form-control">
+                                        <option value="student">Student</option>
+                                        <option value="lecturer">Lecturer</option>
+                                        <option value="hod">Head of Department</option>
+                                        <option value="exam_officer">Examination Officer</option>
+                                        <option value="admin">Administrator</option>
+                                    </select>
+                                    <select id="signupDept" class="form-control">
+                                        <option value="Computer Science">Computer Science</option>
+                                        <option value="Engineering">Engineering</option>
+                                        <option value="Business">Business Administration</option>
+                                        <option value="Accounting">Accounting</option>
+                                        <option value="Law">Law</option>
+                                        <option value="Economics">Economics</option>
+                                    </select>
+                                    <input type="password" id="signupPassword" class="form-control" placeholder="Password (min 6 chars)" required>
+                                    <input type="password" id="signupConfirm" class="form-control" placeholder="Confirm Password" required>
+                                    <button type="submit" class="btn-primary">Create Account</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Login Handler
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                try {
+                    const user = await auth.signInWithEmailAndPassword(email, password);
+                    const userDoc = await db.collection('users').doc(user.user.uid).get();
+                    const role = userDoc.data().role;
+                    const name = userDoc.data().name;
+                    
+                    localStorage.setItem('userRole', role);
+                    localStorage.setItem('userName', name);
+                    localStorage.setItem('userId', user.user.uid);
+                    
+                    showMessage(`Welcome ${name}!`, 'success');
+                    setTimeout(() => showDashboard(), 1000);
+                } catch (error) {
+                    showMessage(error.message, 'danger');
+                }
+            });
+            
+            // Signup Handler
+            document.getElementById('signupForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('signupName').value;
+                const email = document.getElementById('signupEmail').value;
+                const regNumber = document.getElementById('signupNumber').value;
+                const role = document.getElementById('signupRole').value;
+                const dept = document.getElementById('signupDept').value;
+                const password = document.getElementById('signupPassword').value;
+                const confirm = document.getElementById('signupConfirm').value;
+                
+                if (password !== confirm) {
+                    showMessage('Passwords do not match!', 'danger');
+                    return;
+                }
+                
+                try {
+                    const user = await auth.createUserWithEmailAndPassword(email, password);
+                    await db.collection('users').doc(user.user.uid).set({
+                        name, email, regNumber, role, department: dept, createdAt: new Date()
+                    });
+                    if (role === 'student') {
+                        await db.collection('students').doc(user.user.uid).set({
+                            name, matricNumber: regNumber, email, department: dept, level: '100', createdAt: new Date()
+                        });
+                    } else if (role === 'lecturer') {
+                        await db.collection('lecturers').doc(user.user.uid).set({
+                            name, staffId: regNumber, email, department: dept, createdAt: new Date()
+                        });
+                    }
+                    showMessage('Account created! Please login.', 'success');
+                    document.getElementById('signupForm').reset();
+                    document.querySelector('a[href="#login"]').click();
+                } catch (error) {
+                    showMessage(error.message, 'danger');
+                }
+            });
+        }
+        
+        // ========== DASHBOARD ==========
+        async function showDashboard() {
+            const role = localStorage.getItem('userRole');
+            const userName = localStorage.getItem('userName');
+            const userId = localStorage.getItem('userId');
+            
+            if (!role) {
+                showLoginPage();
+                return;
+            }
+            
+            currentUserRole = role;
+            currentUserName = userName;
+            currentUser = userId;
+            
+            // Get stats
+            const students = await db.collection('students').get();
+            const courses = await db.collection('courses').get();
+            const results = await db.collection('results').get();
+            
+            document.getElementById('app').innerHTML = `
+                <div class="dashboard-container" style="display: block;">
+                    <div class="navbar">
+                        <div><i class="fas fa-bars menu-toggle" id="menuToggle"></i> <span class="ms-2">JPTS University - ${role.toUpperCase()} Portal</span></div>
+                        <div><span id="userNameDisplay">${userName}</span> <button class="btn-logout ms-3" id="logoutBtn">Logout</button></div>
+                    </div>
+                    <div class="sidebar" id="sidebar">
+                        <h4 class="text-center mb-3">Menu</h4>
+                        <div id="sidebarMenu"></div>
+                    </div>
+                    <div class="main-content" id="mainContent">
+                        <div class="row">
+                            <div class="col-md-3"><div class="stat-card"><h2>${students.size}</h2><p>Students</p></div></div>
+                            <div class="col-md-3"><div class="stat-card"><h2>${courses.size}</h2><p>Courses</p></div></div>
+                            <div class="col-md-3"><div class="stat-card"><h2>${results.size}</h2><p>Results</p></div></div>
+                            <div class="col-md-3"><div class="stat-card"><h2>${results.docs.filter(r => r.data().status === 'pending').length}</h2><p>Pending</p></div></div>
+                        </div>
+                        <div class="data-card">
+                            <h5>Welcome to JPTS University Portal</h5>
+                            <p>Your role: <strong>${role}</strong>. Select an option from the menu.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Load sidebar based on role
+            const sidebarMenu = document.getElementById('sidebarMenu');
+            let menuHtml = '';
+            
+            if (role === 'admin') {
+                menuHtml = `
+                    <a href="#" onclick="loadAdminDashboard()"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="#" onclick="loadStudents()"><i class="fas fa-users me-2"></i>Students</a>
+                    <a href="#" onclick="loadCourses()"><i class="fas fa-book me-2"></i>Courses</a>
+                    <a href="#" onclick="loadResults()"><i class="fas fa-chart-line me-2"></i>Results</a>
+                `;
+            } else if (role === 'student') {
+                menuHtml = `
+                    <a href="#" onclick="loadStudentResults()"><i class="fas fa-chart-line me-2"></i>My Results</a>
+                    <a href="#" onclick="loadStudentCourses()"><i class="fas fa-book me-2"></i>Register Courses</a>
+                `;
+            } else if (role === 'lecturer') {
+                menuHtml = `
+                    <a href="#" onclick="loadLecturerCourses()"><i class="fas fa-book me-2"></i>My Courses</a>
+                    <a href="#" onclick="loadEnterScores()"><i class="fas fa-edit me-2"></i>Enter Scores</a>
+                `;
+            } else {
+                menuHtml = `<a href="#" onclick="showLoginPage()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>`;
+            }
+            
+            sidebarMenu.innerHTML = menuHtml;
+            
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                await auth.signOut();
+                localStorage.clear();
+                showLoginPage();
+            });
+            
+            document.getElementById('menuToggle')?.addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+        }
+        
+        // ========== ADMIN FUNCTIONS ==========
+        window.loadAdminDashboard = async function() {
+            const students = await db.collection('students').get();
+            const courses = await db.collection('courses').get();
+            const results = await db.collection('results').get();
+            document.getElementById('mainContent').innerHTML = `
+                <h4>Admin Dashboard</h4>
+                <div class="row">
+                    <div class="col-md-3"><div class="stat-card"><h2>${students.size}</h2><p>Students</p></div></div>
+                    <div class="col-md-3"><div class="stat-card"><h2>${courses.size}</h2><p>Courses</p></div></div>
+                    <div class="col-md-3"><div class="stat-card"><h2>${results.size}</h2><p>Results</p></div></div>
+                </div>
+                <div class="data-card">
+                    <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
+                    <button class="btn btn-success" onclick="addCourse()">Add Course</button>
+                </div>
+            `;
+        };
+        
+        window.loadStudents = async function() {
+            const snapshot = await db.collection('students').get();
+            let html = `<div class="data-card"><h4>Student Management</h4><button class="btn btn-primary mb-3" onclick="addStudent()">+ Add Student</button>
+                        <div class="table-responsive"><table class="table"><thead><tr><th>Name</th><th>Matric</th><th>Email</th><th>Dept</th><th>Level</th><th>Action</th></tr></thead><tbody>`;
+            for (const doc of snapshot.docs) {
+                const s = doc.data();
+                html += `<tr>
+                    <td>${s.name}</td>
+                    <td>${s.matricNumber}</td>
+                    <td>${s.email}</td>
+                    <td>${s.department || '-'}</td>
+                    <td>${s.level || '-'}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteStudent('${doc.id}')">Delete</button></td>
+                </tr>`;
+            }
+            html += `</tbody>}</div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        };
+        
+        window.loadCourses = async function() {
+            const snapshot = await db.collection('courses').get();
+            let html = `<div class="data-card"><h4>Course Management</h4><button class="btn btn-success mb-3" onclick="addCourse()">+ Add Course</button>
+                        <div class="table-responsive"><table class="table"><thead><tr><th>Code</th><th>Title</th><th>Credit</th><th>Dept</th><th>Level</th><th>Action</th></tr></thead><tbody>`;
+            for (const doc of snapshot.docs) {
+                const c = doc.data();
+                html += `<td>
+                    <td>${c.courseCode}</td>
+                    <td>${c.courseTitle}</td>
+                    <td>${c.creditUnit}</td>
+                    <td>${c.department || '-'}</td>
+                    <td>${c.level || '-'}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteCourse('${doc.id}')">Delete</button></td>
+                </tr>`;
+            }
+            html += `</tbody>}</div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        };
+        
+        window.loadResults = async function() {
+            const snapshot = await db.collection('results').get();
+            let html = `<div class="data-card"><h4>Result Management</h4>
+                        <div class="table-responsive"><table class="table"><thead><td><th>Student</th><th>Course</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th><th>Status</th></tr></thead><tbody>`;
+            for (const doc of snapshot.docs) {
+                const r = doc.data();
+                const student = await db.collection('students').doc(r.studentId).get();
+                const course = await db.collection('courses').doc(r.courseId).get();
+                const total = (r.caScore || 0) + (r.examScore || 0);
+                const grade = calculateGrade(total);
+                html += `<tr>
+                    <td>${student.data()?.name || 'N/A'}</td>
+                    <td>${course.data()?.courseCode || 'N/A'}</td>
+                    <td>${r.caScore || 0}</td>
+                    <td>${r.examScore || 0}</td>
+                    <td><strong>${total}</strong></td>
+                    <td><span class="grade-${grade.grade}">${grade.grade}</span></td>
+                    <td><span class="badge ${r.status === 'approved' ? 'bg-success' : 'bg-warning'}">${r.status || 'pending'}</span></td>
+                </tr>`;
+            }
+            html += `</tbody>}</div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        };
+        
+        // ========== STUDENT FUNCTIONS ==========
+        window.loadStudentResults = async function() {
+            const results = await db.collection('results').where('studentId', '==', currentUser).where('status', '==', 'approved').get();
+            let totalPoints = 0, totalCredits = 0;
+            let html = `<div class="data-card"><h4>My Results</h4>
+                        <div class="table-responsive"><table class="table"><thead><tr><th>Course</th><th>Credit</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th><th>GP</th></tr></thead><tbody>`;
+            for (const doc of results.docs) {
+                const r = doc.data();
+                const course = await db.collection('courses').doc(r.courseId).get();
+                if (course.exists) {
+                    const c = course.data();
+                    const total = (r.caScore || 0) + (r.examScore || 0);
+                    const grade = calculateGrade(total);
+                    totalPoints += grade.point * c.creditUnit;
+                    totalCredits += c.creditUnit;
+                    html += `<tr>
+                        <td>${c.courseCode} - ${c.courseTitle}</td>
+                        <td>${c.creditUnit}</td>
+                        <td>${r.caScore || 0}</td>
+                        <td>${r.examScore || 0}</td>
+                        <td><strong>${total}</strong></td>
+                        <td><span class="grade-${grade.grade}">${grade.grade}</span></td>
+                        <td>${grade.point}</td>
+                    </tr>`;
+                }
+            }
+            const cgpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
+            html += `</tbody>}</table><div class="alert alert-info mt-3"><strong>CGPA: ${cgpa}</strong></div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        };
+        
+        window.loadStudentCourses = function() {
+            document.getElementById('mainContent').innerHTML = `<div class="data-card"><h4>Course Registration</h4><p>Course registration feature. Select courses for the semester.</p><button class="btn btn-primary" onclick="alert('Registration feature coming soon')">Register Now</button></div>`;
+        };
+        
+        // ========== LECTURER FUNCTIONS ==========
+        window.loadLecturerCourses = async function() {
+            const courses = await db.collection('courses').get();
+            let html = `<div class="data-card"><h4>My Courses</h4><div class="table-responsive"><table class="table"><thead><tr><th>Code</th><th>Title</th><th>Credit</th><th>Action</th></tr></thead><tbody>`;
+            for (const doc of courses.docs) {
+                const c = doc.data();
+                html += `<tr>
+                    <td>${c.courseCode}</td>
+                    <td>${c.courseTitle}</td>
+                    <td>${c.creditUnit}</td>
+                    <td><button class="btn btn-info btn-sm" onclick="enterScoresForCourse('${doc.id}')">Enter Scores</button></td>
+                </tr>`;
+            }
+            html += `</tbody>}</div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        };
+        
+        window.loadEnterScores = function() {
+            loadLecturerCourses();
+        };
+        
+        window.enterScoresForCourse = async function(courseId) {
+            const students = await db.collection('students').get();
+            let studentHtml = '<select id="scoreStudent" class="form-control mb-2"><option value="">Select Student</option>';
+            students.forEach(doc => studentHtml += `<option value="${doc.id}">${doc.data().name} (${doc.data().matricNumber})</option>`);
+            studentHtml += '</select>';
+            
+            const modalHtml = `
+                <div class="modal fade" id="scoreModal">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header"><h5>Enter Student Score</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                            <div class="modal-body">
+                                ${studentHtml}
+                                <input type="number" id="caScore" class="form-control" placeholder="CA Score (0-40)">
+                                <input type="number" id="examScore" class="form-control" placeholder="Exam Score (0-60)">
+                                <div id="gradePreview" class="alert alert-info mt-2">Total: 0 | Grade: -</div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button class="btn btn-primary" onclick="saveScore('${courseId}')">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            $('#scoreModal').modal('show');
+            document.getElementById('caScore').oninput = updatePreview;
+            document.getElementById('examScore').oninput = updatePreview;
+        };
+        
+        function updatePreview() {
+            const ca = parseInt(document.getElementById('caScore').value) || 0;
+            const exam = parseInt(document.getElementById('examScore').value) || 0;
+            const total = ca + exam;
+            let grade = 'F';
+            if (total >= 70) grade = 'A';
+            else if (total >= 60) grade = 'B';
+            else if (total >= 50) grade = 'C';
+            else if (total >= 45) grade = 'D';
+            else if (total >= 40) grade = 'E';
+            document.getElementById('gradePreview').innerHTML = `Total: ${total} | Grade: ${grade}`;
+        }
+        
+        window.saveScore = async function(courseId) {
+            const studentId = document.getElementById('scoreStudent').value;
+            const caScore = parseInt(document.getElementById('caScore').value) || 0;
+            const examScore = parseInt(document.getElementById('examScore').value) || 0;
+            await db.collection('results').add({
+                studentId, courseId, caScore, examScore, status: 'pending', enteredBy: currentUser, createdAt: new Date()
+            });
+            $('#scoreModal').modal('hide');
+            showMessage('Score saved!', 'success');
+            loadLecturerCourses();
+        };
+        
+        // ========== CRUD FUNCTIONS ==========
+        window.addStudent = async function() {
+            const name = prompt('Enter student name:');
+            const matric = prompt('Enter matric number:');
+            const email = prompt('Enter email:');
+            if (name && matric && email) {
+                await db.collection('students').add({ name, matricNumber: matric, email, createdAt: new Date() });
+                showMessage('Student added!', 'success');
+                loadStudents();
+            }
+        };
+        
+        window.addCourse = async function() {
+            const code = prompt('Enter course code:');
+            const title = prompt('Enter course title:');
+            const credit = prompt('Enter credit unit:');
+            if (code && title && credit) {
+                await db.collection('courses').add({ courseCode: code, courseTitle: title, creditUnit: parseInt(credit), createdAt: new Date() });
+                showMessage('Course added!', 'success');
+                loadCourses();
+            }
+        };
+        
+        window.deleteStudent = async function(id) {
+            if(confirm('Delete this student?')) {
+                await db.collection('students').doc(id).delete();
+                showMessage('Deleted', 'success');
+                loadStudents();
+            }
+        };
+        
+        window.deleteCourse = async function(id) {
+            if(confirm('Delete this course?')) {
+                await db.collection('courses').doc(id).delete();
+                showMessage('Deleted', 'success');
+                loadCourses();
+            }
+        };
+        
+        // Initialize
+        auth.onAuthStateChanged((user) => {
+            if (user && localStorage.getItem('userRole')) {
+                showDashboard();
+            } else {
+                showLoginPage();
+            }
+        });
+    </script>
+</body>
+>>>>>>> 2379ad283c51534e5bc4710a2f357dee5eeca6bd
 </html>
