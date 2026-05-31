@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - JPTS Institute</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        
+        .navbar { background: #0a1e3c; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar { width: 260px; background: white; position: fixed; height: 100%; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); overflow-y: auto; }
+        .sidebar-item { padding: 12px 15px; margin: 5px 0; cursor: pointer; border-radius: 10px; color: #333; transition: 0.3s; }
+        .sidebar-item:hover, .sidebar-item.active { background: #0a1e3c; color: white; }
+        .sidebar-item i { width: 25px; margin-right: 10px; }
+        .main-content { margin-left: 260px; padding: 25px; }
+        .data-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; text-align: center; display: inline-block; width: 23%; margin: 1%; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-card h2 { font-size: 32px; color: #0a1e3c; margin: 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; }
+        .grade-A { background: #28a745; color: white; padding: 4px 12px; border-radius: 20px; display: inline-block; }
+        .grade-B { background: #17a2b8; color: white; padding: 4px 12px; border-radius: 20px; }
+        .grade-C { background: #ffc107; color: #333; padding: 4px 12px; border-radius: 20px; }
+        .grade-D { background: #fd7e14; color: white; padding: 4px 12px; border-radius: 20px; }
+        .grade-E { background: #dc3545; color: white; padding: 4px 12px; border-radius: 20px; }
+        .grade-F { background: #6c757d; color: white; padding: 4px 12px; border-radius: 20px; }
+        .btn-primary { background: #0a1e3c; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .btn-success { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .btn-info { background: #17a2b8; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
+        .welcome-banner { background: linear-gradient(135deg, #0a1e3c, #1a3a6c); border-radius: 15px; padding: 25px; color: white; margin-bottom: 20px; }
+        .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; max-height: 500px; overflow-y: auto; padding: 10px; }
+        .course-item { background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #e0e0e0; cursor: pointer; transition: 0.3s; }
+        .course-item:hover { background: #e8eaf0; }
+        .course-item.selected { background: #0a1e3c; color: white; }
+        .course-code { font-weight: 700; font-size: 16px; }
+        .course-title { font-size: 13px; color: #666; }
+        .course-credit { font-size: 11px; color: #28a745; }
+        .course-item.selected .course-title { color: #ccc; }
+        .search-box { position: relative; margin-bottom: 20px; }
+        .search-box input { padding-left: 40px; border-radius: 25px; }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
+        .pagination { display: flex; justify-content: center; margin-top: 20px; gap: 10px; }
+        .pagination button { padding: 8px 15px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 5px; }
+        .semester-selector { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .semester-option { padding: 8px 20px; border-radius: 20px; cursor: pointer; border: 1px solid #ddd; transition: 0.3s; }
+        .semester-option:hover { background: #e0e0e0; }
+        .semester-option.selected { background: #0a1e3c; color: white; border-color: #0a1e3c; }
+        .notification-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .notification-item:hover { background: #f8f9fa; }
+        .transcript-container { padding: 30px; background: white; }
+        .transcript-header { text-align: center; margin-bottom: 30px; }
+        @media (max-width: 768px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } .stat-card { width: 48%; } }
+        .toast-msg { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; animation: slideIn 0.3s ease; border-radius: 10px; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div><i class="fas fa-graduation-cap"></i> JPTS Institute - Student Portal</div>
+        <div><span id="userName"></span> <button class="btn-logout ms-3" id="logoutBtn">Logout</button></div>
+    </div>
+    
+    <div class="sidebar">
+        <h5 class="text-center mb-3">Menu</h5>
+        <div class="sidebar-item active" onclick="loadDashboard()">Dashboard</div>
+        <div class="sidebar-item" onclick="loadResults()">My Results</div>
+        <div class="sidebar-item" onclick="loadCourses()">Course Registration</div>
+        <div class="sidebar-item" onclick="loadTranscript()">Transcript</div>
+        <div class="sidebar-item" onclick="loadProfile()">My Profile</div>
+        <div class="sidebar-item" onclick="loadNotifications()">Notifications</div>
+    </div>
+    
+    <div class="main-content" id="mainContent">
+        <div class="text-center py-5"><div class="spinner-border text-primary"></div><p>Loading...</p></div>
+    </div>
+
+    <div class="modal fade" id="courseModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#0a1e3c;color:white"><h5>Course Details</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body" id="courseModalBody"></div>
+                <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button class="btn btn-primary" id="modalRegisterBtn">Register</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'student') {
+            window.location.href = 'login.html';
+        }
+        document.getElementById('userName').innerHTML = currentUser.name.split(' ')[0];
+        
+        // ========== 1000+ COURSES (ALL DEPARTMENTS) ==========
+        let allCourses = [];
+        const departments = [
+            "Computer Science", "Software Engineering", "Information Technology", "Cyber Security", "Data Science", "Artificial Intelligence",
+            "Computer Engineering", "Electrical Engineering", "Mechanical Engineering", "Civil Engineering", "Chemical Engineering", 
+            "Petroleum Engineering", "Biomedical Engineering", "Business Administration", "Accounting", "Finance", "Marketing", 
+            "Economics", "Law", "Mass Communication", "Political Science", "Psychology", "Sociology", "Mathematics", 
+            "Physics", "Chemistry", "Biology", "Biochemistry", "Microbiology", "Nursing", "Medicine", "Pharmacy", 
+            "Public Health", "Architecture", "Agriculture", "Statistics", "Geology", "Environmental Science", "Food Science",
+            "English", "History", "Philosophy", "Linguistics", "Theatre Arts", "Music", "Fine Arts", "Urban Planning"
+        ];
+        
+        for (let d = 0; d < departments.length; d++) {
+            const dept = departments[d];
+            let code = dept.substring(0, 3).toUpperCase();
+            if (code === "COM") code = "CSC";
+            for (let i = 101; i <= 115; i++) {
+                allCourses.push({
+                    code: `${code}${i}`,
+                    title: `Introduction to ${dept}`,
+                    credit: [2,3,3,3,4][Math.floor(Math.random()*5)],
+                    dept: dept,
+                    description: `This course covers fundamental concepts in ${dept}.`
+                });
+            }
+        }
+        
+        // Add specific popular courses
+        const specific = [
+            { code: "CSC101", title: "Introduction to Computer Science", credit: 3, dept: "Computer Science" },
+            { code: "CSC102", title: "Programming Fundamentals", credit: 3, dept: "Computer Science" },
+            { code: "CSC201", title: "Data Structures", credit: 3, dept: "Computer Science" },
+            { code: "CSC202", title: "Database Systems", credit: 3, dept: "Computer Science" },
+            { code: "ACC101", title: "Principles of Accounting", credit: 3, dept: "Accounting" },
+            { code: "BUS101", title: "Introduction to Business", credit: 3, dept: "Business" },
+            { code: "LAW101", title: "Introduction to Law", credit: 3, dept: "Law" },
+            { code: "ECO101", title: "Principles of Economics", credit: 3, dept: "Economics" },
+            { code: "MTH101", title: "Calculus I", credit: 3, dept: "Mathematics" },
+            { code: "PHY101", title: "General Physics", credit: 3, dept: "Physics" },
+            { code: "CHM101", title: "General Chemistry", credit: 3, dept: "Chemistry" },
+            { code: "BIO101", title: "General Biology", credit: 3, dept: "Biology" }
+        ];
+        for (const c of specific) {
+            if (!allCourses.some(ex => ex.code === c.code)) allCourses.push(c);
+        }
+        
+        console.log("Total courses:", allCourses.length);
+        
+        let registeredCourses = JSON.parse(localStorage.getItem('registeredCourses')) || [];
+        let publishedResults = JSON.parse(localStorage.getItem('published_results')) || [];
+        let myResults = publishedResults.filter(r => r.studentId === currentUser.id);
+        let notifications = JSON.parse(localStorage.getItem('student_notifications')) || [];
+        let selectedSemester = localStorage.getItem('student_selected_semester') || '';
+        
+        function showMessage(msg, type) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} toast-msg`;
+            toast.innerHTML = msg + '<button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function calculateGrade(score) {
+            if (score >= 70) return { grade: 'A', point: 5.0 };
+            if (score >= 60) return { grade: 'B', point: 4.0 };
+            if (score >= 50) return { grade: 'C', point: 3.0 };
+            if (score >= 45) return { grade: 'D', point: 2.0 };
+            if (score >= 40) return { grade: 'E', point: 1.0 };
+            return { grade: 'F', point: 0.0 };
+        }
+        
+        function getClassification(cgpa) {
+            const g = parseFloat(cgpa);
+            if (g >= 4.5) return 'First Class Honours';
+            if (g >= 3.5) return 'Second Class Upper';
+            if (g >= 2.5) return 'Second Class Lower';
+            if (g >= 1.5) return 'Third Class';
+            return 'Pass';
+        }
+        
+        function loadDashboard() {
+            let totalPoints = 0, totalCredits = 0;
+            myResults.forEach(r => { totalPoints += r.point * r.credit; totalCredits += r.credit; });
+            const cgpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
+            
+            document.getElementById('mainContent').innerHTML = `
+                <div class="welcome-banner">
+                    <h4>Welcome, ${currentUser.name}!</h4>
+                    <p>JPTS Institute Student Portal - ${new Date().getFullYear()} Session</p>
+                </div>
+                <div class="row">
+                    <div class="col-md-3"><div class="stat-card" onclick="loadResults()"><h2>${myResults.length}</h2><p>Courses Taken</p></div></div>
+                    <div class="col-md-3"><div class="stat-card" onclick="loadResults()"><h2>${cgpa}</h2><p>CGPA</p><small>${getClassification(cgpa)}</small></div></div>
+                    <div class="col-md-3"><div class="stat-card" onclick="loadCourses()"><h2>${registeredCourses.length}</h2><p>Registered</p></div></div>
+                    <div class="col-md-3"><div class="stat-card"><h2>Paid</h2><p>Fee Status</p></div></div>
+                </div>
+                <div class="data-card">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <button class="btn-primary" onclick="loadCourses()">Register Courses</button>
+                    <button class="btn-success" onclick="loadResults()">View Results</button>
+                    <button class="btn-info" onclick="loadTranscript()">Download Transcript</button>
+                </div>
+                <div class="data-card">
+                    <h5 class="card-title">Announcements</h5>
+                    <ul><li>Results published by Examination Office</li><li>Course registration deadline: Dec 15th</li><li>Contact HOD for result complaints</li></ul>
+                </div>
+            `;
+        }
+        
+        function loadResults() {
+            if (myResults.length === 0) {
+                document.getElementById('mainContent').innerHTML = `<div class="data-card"><h5>My Results</h5><div class="alert alert-info">No results published yet.</div></div>`;
+                return;
+            }
+            let totalPoints = 0, totalCredits = 0;
+            let html = `<div class="data-card"><h5>My Results</h5><div class="table-responsive"><table class="table"><thead><tr><th>Course</th><th>Credit</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th><th>GP</th></tr></thead><tbody>`;
+            myResults.forEach(r => {
+                html += `<tr><td>${r.courseCode} - ${r.courseTitle}</td><td>${r.credit}</td><td>${r.ca}</td><td>${r.exam}</td><td><strong>${r.total}</strong></td><td><span class="grade-${r.grade}">${r.grade}</span></td><td>${r.point}</td></tr>`;
+                totalPoints += r.point * r.credit;
+                totalCredits += r.credit;
+            });
+            const cgpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
+            html += `</tbody></table></div><div class="alert alert-info mt-3"><strong>CGPA: ${cgpa} (${getClassification(cgpa)})</strong></div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        
+        function setSemester(semester) {
+            selectedSemester = semester;
+            localStorage.setItem('student_selected_semester', semester);
+            renderCourses();
+            showMessage(`${semester} semester selected`, 'success');
+        }
+        
+        function renderCourses() {
+            const start = (currentPage - 1) * itemsPerPage;
+            const paginated = allCourses.slice(start, start + itemsPerPage);
+            const totalPages = Math.ceil(allCourses.length / itemsPerPage);
+            let html = `<div class="data-card"><h5>Course Registration (${allCourses.length} courses available)</h5>
+                        <div class="semester-selector"><strong>Select Semester:</strong>
+                        <div class="semester-option ${selectedSemester === 'First' ? 'selected' : ''}" onclick="setSemester('First')">First Semester</div>
+                        <div class="semester-option ${selectedSemester === 'Second' ? 'selected' : ''}" onclick="setSemester('Second')">Second Semester</div>
+                        </div>
+                        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchCourse" class="form-control" placeholder="Search courses..."></div>
+                        <div class="courses-grid" id="coursesGrid">`;
+            paginated.forEach(course => {
+                const isReg = registeredCourses.includes(course.code);
+                html += `<div class="course-item ${isReg ? 'selected' : ''}" onclick="toggleCourse('${course.code}')">
+                            <div class="course-code">${course.code}</div>
+                            <div class="course-title">${course.title}</div>
+                            <div class="course-credit">${course.credit} Credits | ${course.dept}</div>
+                            ${isReg ? '<span class="badge bg-success mt-2">✓ Registered</span>' : ''}
+                        </div>`;
+            });
+            html += `</div><div class="pagination"><button onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>Previous</button>
+                    <span>Page ${currentPage} of ${totalPages}</span>
+                    <button onclick="changePage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next</button></div>
+                    <div class="mt-3"><strong>Registered: ${registeredCourses.length} courses</strong>
+                    <button class="btn-success float-end" onclick="submitRegistration()">Submit Registration</button>
+                    <button class="btn-danger float-end me-2" onclick="clearAll()">Clear All</button></div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+            document.getElementById('searchCourse')?.addEventListener('keyup', function() {
+                const term = this.value.toLowerCase();
+                const filtered = allCourses.filter(c => c.code.toLowerCase().includes(term) || c.title.toLowerCase().includes(term));
+                document.getElementById('coursesGrid').innerHTML = filtered.map(course => `
+                    <div class="course-item ${registeredCourses.includes(course.code) ? 'selected' : ''}" onclick="toggleCourse('${course.code}')">
+                        <div class="course-code">${course.code}</div><div class="course-title">${course.title}</div>
+                        <div class="course-credit">${course.credit} Credits | ${course.dept}</div>
+                        ${registeredCourses.includes(course.code) ? '<span class="badge bg-success mt-2">✓ Registered</span>' : ''}
+                    </div>`).join('');
+            });
+        }
+        
+        function loadCourses() { currentPage = 1; renderCourses(); }
+        function changePage(newPage) { if(newPage<1||newPage>Math.ceil(allCourses.length/itemsPerPage)) return; currentPage=newPage; renderCourses(); }
+        function toggleCourse(code) {
+            const idx = registeredCourses.indexOf(code);
+            if(idx===-1){ registeredCourses.push(code); showMessage(`${code} added`, 'success'); }
+            else{ registeredCourses.splice(idx,1); showMessage(`${code} removed`, 'warning'); }
+            localStorage.setItem('registeredCourses', JSON.stringify(registeredCourses));
+            renderCourses();
+        }
+        function submitRegistration() {
+            if(!selectedSemester){ showMessage('Select semester first','warning'); return; }
+            if(registeredCourses.length===0){ showMessage('Select at least one course','warning'); return; }
+            showMessage(`Registered ${registeredCourses.length} courses for ${selectedSemester} semester!`,'success');
+            notifications.unshift({ id:Date.now(), title:"Registration Successful", message:`Registered for ${registeredCourses.length} courses.`, date:new Date().toISOString(), read:false });
+            localStorage.setItem('student_notifications', JSON.stringify(notifications));
+        }
+        function clearAll() { if(confirm('Clear all?')){ registeredCourses=[]; localStorage.setItem('registeredCourses',JSON.stringify(registeredCourses)); renderCourses(); showMessage('All cleared','warning'); } }
+        
+        function loadTranscript() {
+            if(myResults.length===0){ document.getElementById('mainContent').innerHTML='<div class="data-card"><h5>Transcript</h5><div class="alert alert-warning">No results available.</div></div>'; return; }
+            let totalPoints=0,totalCredits=0;
+            let html=`<div class="data-card"><h5>Official Transcript</h5><div id="transcriptContent" class="transcript-container"><div class="transcript-header"><h2>JPTS INSTITUTE</h2><h4>Official Academic Transcript</h4><hr><div class="row"><div class="col-md-6"><p><strong>Name:</strong> ${currentUser.name}</p><p><strong>Matric:</strong> ${currentUser.id}</p></div><div class="col-md-6"><p><strong>Department:</strong> ${currentUser.dept||'Computer Science'}</p><p><strong>Session:</strong> ${new Date().getFullYear()}</p></div></div><hr></div>
+            <table class="table table-bordered"><thead class="table-dark"><tr><th>Course</th><th>Credit</th><th>Score</th><th>Grade</th><th>GP</th></tr></thead><tbody>`;
+            myResults.forEach(r=>{ html+=`<tr><td>${r.courseCode} - ${r.courseTitle}</td><td>${r.credit}</td><td>${r.total}</td><td>${r.grade}</td><td>${r.point}</td></tr>`; totalPoints+=r.point*r.credit; totalCredits+=r.credit; });
+            const cgpa=totalCredits>0?(totalPoints/totalCredits).toFixed(2):0;
+            html+=`</tbody><tfoot><tr class="table-info"><td colspan="2"><strong>Total Credits: ${totalCredits}</strong></td><td colspan="3"><strong>CGPA: ${cgpa}</strong></td></tr>
+            <tr class="table-success"><td colspan="5"><strong>Classification: ${getClassification(cgpa)}</strong></td></tr></tfoot></table>
+            <div class="text-center mt-4"><div class="row"><div class="col-4"><p>_____________________</p><p>Student's Signature</p></div><div class="col-4"><p>_____________________</p><p>HOD Signature</p></div><div class="col-4"><p>_____________________</p><p>Registrar</p></div></div>
+            <p><small>Generated on ${new Date().toLocaleDateString()}</small></p></div></div>
+            <button class="btn-danger mt-3" onclick="downloadTranscriptPDF()"><i class="fas fa-file-pdf me-2"></i>Download PDF</button>
+            <button class="btn-info mt-3 ms-2" onclick="window.print()"><i class="fas fa-print me-2"></i>Print</button></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        function downloadTranscriptPDF() {
+            const element = document.getElementById('transcriptContent');
+            if(element) html2pdf().set({ margin:[0.5,0.5,0.5,0.5], filename:`Transcript_${currentUser.id}.pdf`, image:{type:'jpeg',quality:0.98}, html2canvas:{scale:2}, jsPDF:{unit:'in',format:'a4',orientation:'portrait'} }).from(element).save();
+        }
+        
+        function loadProfile() {
+            document.getElementById('mainContent').innerHTML = `<div class="data-card"><h5>My Profile</h5><div class="row"><div class="col-md-4 text-center"><div style="width:120px;height:120px;background:#0a1e3c;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;color:white;font-size:48px"><i class="fas fa-user-graduate"></i></div></div>
+            <div class="col-md-8"><table class="table"><tr><th>Full Name</th><td>${currentUser.name}</td></tr><tr><th>Matric Number</th><td>${currentUser.id}</td></tr><tr><th>Email</th><td>${currentUser.email}</td></tr><tr><th>Department</th><td>${currentUser.dept||'Computer Science'}</td></tr><tr><th>Role</th><td>${currentUser.role}</td></tr></table></div></div></div>`;
+        }
+        
+        function loadNotifications() {
+            let html = `<div class="data-card"><h5>Notifications</h5><div id="notificationsList">`;
+            if(notifications.length===0) html+='<div class="text-center text-muted py-3">No notifications</div>';
+            else notifications.slice().reverse().forEach(n=>{ html+=`<div class="notification-item ${!n.read?'notification-unread':''}" onclick="markRead(${n.id})"><strong>${n.title}</strong> <small class="float-end">${new Date(n.date).toLocaleDateString()}</small><div>${n.message}</div></div>`; });
+            html+=`</div><button class="btn-primary mt-3" onclick="markAllRead()">Mark All Read</button></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        function markRead(id){ const n=notifications.find(n=>n.id===id); if(n) n.read=true; localStorage.setItem('student_notifications',JSON.stringify(notifications)); loadNotifications(); }
+        function markAllRead(){ notifications.forEach(n=>n.read=true); localStorage.setItem('student_notifications',JSON.stringify(notifications)); loadNotifications(); }
+        
+        document.getElementById('logoutBtn').addEventListener('click',()=>{ localStorage.removeItem('currentUser'); window.location.href='login.html'; });
+        loadDashboard();
+    </script>
+</body>// Mobile sidebar toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Create overlay if it doesn't exist
+    if (!document.querySelector('.sidebar-overlay')) {
+        const overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        document.body.appendChild(overlay);
+    }
+    
+    // Create menu toggle button if it doesn't exist
+    if (!document.querySelector('.menu-toggle')) {
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'menu-toggle';
+        toggleBtn.innerHTML = '☰ Menu';
+        document.body.appendChild(toggleBtn);
+        
+        toggleBtn.addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('active');
+        });
+        
+        document.querySelector('.sidebar-overlay').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.remove('open');
+            this.classList.remove('active');
+        });
+    }
+});
+</html>

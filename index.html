@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPTS Institute - Grade Evaluation System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: rgba(10, 30, 60, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .navbar.scrolled {
+            background: #0a1e3c;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-size: 28px;
+            font-weight: 800;
+            color: white !important;
+        }
+
+        .navbar-brand i {
+            color: #c49a2c;
+            margin-right: 10px;
+        }
+
+        .nav-link {
+            color: white !important;
+            font-weight: 500;
+            margin: 0 10px;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #c49a2c !important;
+        }
+
+        .btn-nav-login {
+            background: #c49a2c;
+            color: #0a1e3c;
+            padding: 8px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-nav-login:hover {
+            background: #ffd700;
+            transform: translateY(-2px);
+            color: #0a1e3c;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a1e3c 0%, #1a3a6c 50%, #0c1445 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.05)" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+            background-size: cover;
+            opacity: 0.1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            color: white;
+            padding: 100px 0;
+        }
+
+        .hero-title {
+            font-size: 55px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero-title span {
+            color: #c49a2c;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+
+        .hero-buttons .btn {
+            padding: 12px 35px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-right: 15px;
+            transition: 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary-custom {
+            background: #c49a2c;
+            color: #0a1e3c;
+            border: none;
+            text-decoration: none;
+        }
+
+        .btn-primary-custom:hover {
+            background: #ffd700;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            color: #0a1e3c;
+        }
+
+        .btn-outline-custom {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-outline-custom:hover {
+            background: white;
+            color: #0a1e3c;
+            transform: translateY(-3px);
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 50px;
+            margin-top: 50px;
+        }
+
+        .stat-item h3 {
+            font-size: 36px;
+            font-weight: 800;
+            margin: 0;
+            color: #c49a2c;
+        }
+
+        .stat-item p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-title h2 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #0a1e3c;
+            margin-bottom: 10px;
+        }
+
+        .section-title p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            height: 100%;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #0a1e3c, #1a3a6c);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .feature-icon i {
+            font-size: 35px;
+            color: #c49a2c;
+        }
+
+        .feature-card h4 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #0a1e3c;
+        }
+
+        .feature-card p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* About Section */
+        .about {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .about-image {
+            text-align: center;
+        }
+
+        .about-image i {
+            font-size: 200px;
+            color: #0a1e3c;
+            opacity: 0.1;
+        }
+
+        .about-content h3 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0a1e3c;
+            margin-bottom: 20px;
+        }
+
+        .about-content p {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .about-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .about-list li {
+            margin-bottom: 12px;
+            color: #555;
+        }
+
+        .about-list li i {
+            color: #c49a2c;
+            margin-right: 10px;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            background: linear-gradient(135deg, #0a1e3c, #1a3a6c);
+            padding: 60px 0;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            text-align: center;
+        }
+
+        .stats-item h2 {
+            font-size: 48px;
+            font-weight: 800;
+            margin: 0;
+            color: #c49a2c;
+        }
+
+        .stats-item p {
+            margin: 10px 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* Courses Preview Section */
+        .courses-preview {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+
+        .course-badge {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin: 10px;
+            display: inline-block;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            text-align: center;
+            min-width: 180px;
+        }
+
+        .course-badge:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            background: #0a1e3c;
+            color: white;
+        }
+
+        .course-badge .course-code {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .course-badge .course-title {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .course-badge:hover .course-title {
+            color: #ccc;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .testimonial-card {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: 0.3s;
+            height: 100%;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .testimonial-avatar {
+            width: 80px;
+            height: 80px;
+            background: #0a1e3c;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .testimonial-avatar i {
+            font-size: 40px;
+            color: #c49a2c;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .testimonial-name {
+            font-weight: 700;
+            color: #0a1e3c;
+        }
+
+        .testimonial-title {
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* Contact Section */
+        .contact {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+
+        .contact-info {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            height: 100%;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+
+        .contact-info i {
+            font-size: 40px;
+            color: #c49a2c;
+            margin-bottom: 15px;
+        }
+
+        .contact-info h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .contact-info p {
+            color: #666;
+            margin: 0;
+        }
+
+        /* Footer */
+        .footer {
+            background: #0a1e3c;
+            color: white;
+            padding: 60px 0 30px;
+        }
+
+        .footer h5 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #c49a2c;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #c49a2c;
+            padding-left: 5px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            color: white;
+            margin-right: 10px;
+            transition: 0.3s;
+        }
+
+        .social-links a:hover {
+            background: #c49a2c;
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Back to Top */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: #c49a2c;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0a1e3c;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 999;
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: #ffd700;
+            transform: translateY(-3px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 36px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .hero-stats {
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+            .section-title h2 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-graduation-cap"></i> JPTS Institute
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon bg-white rounded"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#courses">Courses</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                    <li class="nav-item ms-lg-3">
+                        <a class="btn-nav-login" href="login.html">Login / Sign Up</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="row align-items-center">
+                    <div class="col-lg-7">
+                        <h1 class="hero-title">Welcome to <span>JPTS Institute</span></h1>
+                        <h1 class="hero-title">Grade Evaluation System</h1>
+                        <p class="hero-subtitle">A modern, fully automated academic result management platform that eliminates calculation errors, provides real-time GPA/CGPA tracking, and generates official transcripts instantly.</p>
+                        <div class="hero-buttons">
+                            <a href="login.html" class="btn btn-primary-custom">Get Started</a>
+                            <a href="#features" class="btn btn-outline-custom">Learn More</a>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="stat-item">
+                                <h3>10,000+</h3>
+                                <p>Students</p>
+                            </div>
+                            <div class="stat-item">
+                                <h3>400+</h3>
+                                <p>Courses</p>
+                            </div>
+                            <div class="stat-item">
+                                <h3>98%</h3>
+                                <p>Satisfaction</p>
+                            </div>
+                            <div class="stat-item">
+                                <h3>24/7</h3>
+                                <p>Access</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 text-center d-none d-lg-block">
+                        <i class="fas fa-chart-line" style="font-size: 250px; color: rgba(255,255,255,0.1);"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Powerful Features</h2>
+                <p>Everything you need for modern academic management</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-calculator"></i></div>
+                        <h4>Auto GPA Computation</h4>
+                        <p>Automatic calculation of GPA and CGPA using institutional grading system. Real-time updates as grades are entered.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
+                        <h4>Instant Transcripts</h4>
+                        <p>Generate professional academic transcripts with one click. PDF export with QR verification and digital signature.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                        <h4>Analytics Dashboard</h4>
+                        <p>Real-time insights into student performance, departmental trends, and institutional metrics with beautiful charts.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-users"></i></div>
+                        <h4>Student Management</h4>
+                        <p>Complete student profile management with bulk import/export, photo upload, and automated matric number generation.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <h4>Lecturer Portal</h4>
+                        <p>Upload scores, manage assigned courses, edit results before approval, and view teaching analytics.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h4>Secure Access</h4>
+                        <p>Role-based access control with audit trails, email verification, and optional two-factor authentication.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stats-item">
+                    <h2>99.9%</h2>
+                    <p>Accuracy Rate</p>
+                </div>
+                <div class="stats-item">
+                    <h2>70%</h2>
+                    <p>Faster Processing</p>
+                </div>
+                <div class="stats-item">
+                    <h2>100%</h2>
+                    <p>Data Security</p>
+                </div>
+                <div class="stats-item">
+                    <h2>24/7</h2>
+                    <p>Accessibility</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="about-image">
+                        <i class="fas fa-university"></i>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="about-content">
+                        <h3>About JPTS Institute</h3>
+                        <p>JPTS Institute is a premier institution of higher learning committed to academic excellence, innovation, and character development. Our Grade Evaluation System represents our dedication to leveraging technology for educational advancement.</p>
+                        <ul class="about-list">
+                            <li><i class="fas fa-check-circle"></i> Accredited by National Universities Commission</li>
+                            <li><i class="fas fa-check-circle"></i> State-of-the-art learning facilities</li>
+                            <li><i class="fas fa-check-circle"></i> Experienced and qualified faculty</li>
+                            <li><i class="fas fa-check-circle"></i> Industry-relevant curriculum</li>
+                            <li><i class="fas fa-check-circle"></i> Research-driven education</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Courses Preview Section -->
+    <section id="courses" class="courses-preview">
+        <div class="container">
+            <div class="section-title">
+                <h2>Popular Courses</h2>
+                <p>Choose from 400+ courses across multiple disciplines</p>
+            </div>
+            <div class="text-center">
+                <div class="course-badge">
+                    <div class="course-code">CSC101</div>
+                    <div class="course-title">Intro to Computing</div>
+                </div>
+                <div class="course-badge">
+                    <div class="course-code">CSC102</div>
+                    <div class="course-title">Programming</div>
+                </div>
+                <div class="course-badge">
+                    <div class="course-code">ENG101</div>
+                    <div class="course-title">Engineering Math</div>
+                </div>
+                <div class="course-badge">
+                    <div class="course-code">BUS101</div>
+                    <div class="course-title">Intro to Business</div>
+                </div>
+                <div class="course-badge">
+                    <div class="course-code">ACC101</div>
+                    <div class="course-title">Accounting</div>
+                </div>
+                <div class="course-badge">
+                    <div class="course-code">LAW101</div>
+                    <div class="course-title">Intro to Law</div>
+                </div>
+                <div class="course-badge">
+                    <div class="course-code">MAC101</div>
+                    <div class="course-title">Mass Comm</div>
+                </div>
+                <div class="course-badge">
+                    <div class="course-code">ECO101</div>
+                    <div class="course-title">Economics</div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <a href="login.html" class="btn btn-primary-custom" style="background: #0a1e3c; color: white; padding: 12px 30px; border-radius: 50px;">View All 400+ Courses →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-title">
+                <h2>What Our Students Say</h2>
+                <p>Hear from our successful graduates</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-avatar"><i class="fas fa-user-graduate"></i></div>
+                        <p class="testimonial-text">"The Grade Evaluation System made checking my results so easy. I can access my transcript anytime, anywhere."</p>
+                        <p class="testimonial-name">John Doe</p>
+                        <p class="testimonial-title">Computer Science, 2024</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-avatar"><i class="fas fa-user-graduate"></i></div>
+                        <p class="testimonial-text">"The real-time GPA tracking helped me monitor my academic progress throughout the semester."</p>
+                        <p class="testimonial-name">Jane Smith</p>
+                        <p class="testimonial-title">Engineering, 2024</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-avatar"><i class="fas fa-user-graduate"></i></div>
+                        <p class="testimonial-text">"Downloading my transcript was instant and professional. The QR verification adds great security."</p>
+                        <p class="testimonial-name">Michael Johnson</p>
+                        <p class="testimonial-title">Business, 2024</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-title">
+                <h2>Contact Us</h2>
+                <p>Get in touch with us for any inquiries</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="contact-info">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h4>Address</h4>
+                        <p>123 University Road,<br>Lagos, Nigeria</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="contact-info">
+                        <i class="fas fa-phone-alt"></i>
+                        <h4>Phone</h4>
+                        <p>+234 123 456 7890<br>+234 123 456 7891</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="contact-info">
+                        <i class="fas fa-envelope"></i>
+                        <h4>Email</h4>
+                        <p>info@jpts.edu.ng<br>admissions@jpts.edu.ng</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5><i class="fas fa-graduation-cap me-2"></i>JPTS Institute</h5>
+                    <p style="color: rgba(255,255,255,0.7);">Committed to excellence in education, research, and innovation. Building future leaders.</p>
+                    <div class="social-links mt-3">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="footer-links">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#courses">Courses</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5>Resources</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Student Portal</a></li>
+                        <li><a href="#">Academic Calendar</a></li>
+                        <li><a href="#">Library</a></li>
+                        <li><a href="#">FAQs</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 mb-4">
+                    <h5>Newsletter</h5>
+                    <p style="color: rgba(255,255,255,0.7);">Subscribe for updates</p>
+                    <div class="input-group">
+                        <input type="email" class="form-control" placeholder="Your email" style="border-radius: 50px 0 0 50px;">
+                        <button class="btn" style="background: #c49a2c; border-radius: 0 50px 50px 0;">Subscribe</button>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2019 JPTS Institute. All rights reserved. | Designed for academic excellence</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <div class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            const backToTop = document.getElementById('backToTop');
+            
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+                backToTop.classList.add('show');
+            } else {
+                navbar.classList.remove('scrolled');
+                backToTop.classList.remove('show');
+            }
+        });
+        
+        // Back to top
+        document.getElementById('backToTop').addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
