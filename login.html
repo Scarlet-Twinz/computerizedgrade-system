@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPTS Institute - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a1e3c, #1a3a6c);
+            min-height: 100vh;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            margin: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header i {
+            font-size: 60px;
+            color: #0a1e3c;
+        }
+
+        .login-header h2 {
+            margin-top: 15px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        .btn-login {
+            background: #0a1e3c;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            width: 100%;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #0a1e3c;
+            border-bottom: 3px solid #0a1e3c;
+            font-weight: bold;
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .role-card {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid #ddd;
+            background: white;
+            transition: 0.3s;
+        }
+
+        .role-card.selected {
+            border-color: #0a1e3c;
+            background: #0a1e3c;
+            color: white;
+        }
+
+        .toast-msg {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="login-card">
+    <div class="login-header">
+        <i class="fas fa-graduation-cap"></i>
+        <h2>JPTS Institute</h2>
+        <p>Grade Evaluation System</p>
+    </div>
+    
+    <ul class="nav nav-tabs mb-4" id="authTab">
+        <li class="nav-item w-50">
+            <a class="nav-link active" data-bs-toggle="tab" href="#login">Login</a>
+        </li>
+        <li class="nav-item w-50">
+            <a class="nav-link" data-bs-toggle="tab" href="#signup">Sign Up</a>
+        </li>
+    </ul>
+    
+    <div class="tab-content">
+        <!-- LOGIN TAB -->
+        <div class="tab-pane active" id="login">
+            <div class="role-selector" id="loginRoleSelector">
+                <div class="role-card" data-role="student">Student</div>
+                <div class="role-card" data-role="lecturer">Lecturer</div>
+                <div class="role-card" data-role="hod">HOD</div>
+                <div class="role-card" data-role="exam_officer">Exam Officer</div>
+                <div class="role-card" data-role="admin">Admin</div>
+            </div>
+            <form id="loginForm">
+                <input type="text" id="loginEmail" class="form-control" placeholder="Email or Matric Number" required>
+                <input type="password" id="loginPassword" class="form-control" placeholder="Password" required>
+                <button type="submit" class="btn-login">Login</button>
+            </form>
+        </div>
+        
+        <!-- SIGNUP TAB -->
+        <div class="tab-pane" id="signup">
+            <form id="signupForm">
+                <input type="text" id="signupName" class="form-control" placeholder="Full Name" required>
+                <input type="email" id="signupEmail" class="form-control" placeholder="Email Address" required>
+                <input type="text" id="signupNumber" class="form-control" placeholder="Matric/Staff Number" required>
+                
+                <select id="signupRole" class="form-control">
+                    <option value="student">Student</option>
+                    <option value="lecturer">Lecturer</option>
+                    <option value="hod">Head of Department</option>
+                    <option value="exam_officer">Examination Officer</option>
+                    <option value="admin">Administrator</option>
+                </select>
+                
+                <select id="signupDept" class="form-control">
+                    <optgroup label="🔬 SCIENCES">
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Software Engineering">Software Engineering</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Cyber Security">Cyber Security</option>
+                        <option value="Data Science">Data Science</option>
+                        <option value="Artificial Intelligence">Artificial Intelligence</option>
+                        <option value="Mathematics">Mathematics</option>
+                        <option value="Statistics">Statistics</option>
+                        <option value="Physics">Physics</option>
+                        <option value="Chemistry">Chemistry</option>
+                        <option value="Biology">Biology</option>
+                        <option value="Biochemistry">Biochemistry</option>
+                        <option value="Microbiology">Microbiology</option>
+                    </optgroup>
+                    <optgroup label="⚙️ ENGINEERING">
+                        <option value="Mechanical Engineering">Mechanical Engineering</option>
+                        <option value="Electrical Engineering">Electrical Engineering</option>
+                        <option value="Civil Engineering">Civil Engineering</option>
+                        <option value="Chemical Engineering">Chemical Engineering</option>
+                        <option value="Petroleum Engineering">Petroleum Engineering</option>
+                        <option value="Computer Engineering">Computer Engineering</option>
+                    </optgroup>
+                    <optgroup label="💰 BUSINESS">
+                        <option value="Business Administration">Business Administration</option>
+                        <option value="Accounting">Accounting</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Entrepreneurship">Entrepreneurship</option>
+                    </optgroup>
+                    <optgroup label="⚖️ SOCIAL SCIENCES">
+                        <option value="Economics">Economics</option>
+                        <option value="Political Science">Political Science</option>
+                        <option value="Sociology">Sociology</option>
+                        <option value="Psychology">Psychology</option>
+                    </optgroup>
+                    <optgroup label="📚 ARTS">
+                        <option value="Mass Communication">Mass Communication</option>
+                        <option value="English">English</option>
+                        <option value="Literature">Literature</option>
+                    </optgroup>
+                    <optgroup label="⚖️ LAW">
+                        <option value="Law">Law</option>
+                    </optgroup>
+                    <optgroup label="⚕️ HEALTH">
+                        <option value="Nursing">Nursing</option>
+                        <option value="Public Health">Public Health</option>
+                    </optgroup>
+                </select>
+                
+                <input type="password" id="signupPassword" class="form-control" placeholder="Password (min 6 chars)" required>
+                <input type="password" id="signupConfirm" class="form-control" placeholder="Confirm Password" required>
+                <button type="submit" class="btn-login">Create Account</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Users database
+    let users = JSON.parse(localStorage.getItem('jpts_users')) || [
+        { name: "Admin User", email: "admin@jpts.edu", password: "admin123", id: "ADMIN001", role: "admin", dept: "Admin" },
+        { name: "Student User", email: "student@jpts.edu", password: "student123", id: "STU001", role: "student", dept: "Computer Science" },
+        { name: "Lecturer User", email: "lecturer@jpts.edu", password: "lecturer123", id: "LEC001", role: "lecturer", dept: "Computer Science" },
+        { name: "HOD User", email: "hod@jpts.edu", password: "hod123", id: "HOD001", role: "hod", dept: "Computer Science" },
+        { name: "Exam Officer", email: "exam@jpts.edu", password: "exam123", id: "EXAM001", role: "exam_officer", dept: "Registry" }
+    ];
+    
+    function saveUsers() {
+        localStorage.setItem('jpts_users', JSON.stringify(users));
+    }
+    saveUsers();
+    
+    let selectedRole = "student";
+    
+    // Role selector click handler
+    document.querySelectorAll('#loginRoleSelector .role-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('#loginRoleSelector .role-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedRole = this.getAttribute('data-role');
+        });
+    });
+    
+    function showMessage(msg, type) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} toast-msg`;
+        toast.innerHTML = msg + '<button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    // LOGIN
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const loginInput = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        const user = users.find(u => (u.email === loginInput || u.id === loginInput) && u.role === selectedRole);
+        
+        if (!user) {
+            showMessage(`No ${selectedRole} account found with these credentials!`, 'danger');
+            return;
+        }
+        
+        if (user.password !== password) {
+            showMessage('Incorrect password!', 'danger');
+            return;
+        }
+        
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        showMessage(`Welcome ${user.name}! Redirecting...`, 'success');
+        
+        setTimeout(() => {
+            if (user.role === 'admin') window.location.href = 'admin-dashboard.html';
+            else if (user.role === 'lecturer') window.location.href = 'lecturer-dashboard.html';
+            else if (user.role === 'hod') window.location.href = 'hod-dashboard.html';
+            else if (user.role === 'exam_officer') window.location.href = 'exam-officer-dashboard.html';
+            else window.location.href = 'student-dashboard.html';
+        }, 1500);
+    });
+    
+    // SIGNUP
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('signupName').value;
+        const email = document.getElementById('signupEmail').value;
+        const id = document.getElementById('signupNumber').value;
+        const role = document.getElementById('signupRole').value;
+        const dept = document.getElementById('signupDept').value;
+        const password = document.getElementById('signupPassword').value;
+        const confirm = document.getElementById('signupConfirm').value;
+        
+        if (password !== confirm) {
+            showMessage('Passwords do not match!', 'danger');
+            return;
+        }
+        
+        if (password.length < 6) {
+            showMessage('Password must be at least 6 characters', 'danger');
+            return;
+        }
+        
+        if (users.find(u => u.email === email)) {
+            showMessage('Email already registered!', 'danger');
+            return;
+        }
+        
+        if (users.find(u => u.id === id)) {
+            showMessage('ID already exists!', 'danger');
+            return;
+        }
+        
+        const newUser = { name, email, password, id, role, dept };
+        users.push(newUser);
+        saveUsers();
+        
+        showMessage('Account created successfully! Please login.', 'success');
+        document.getElementById('signupForm').reset();
+        document.querySelector('a[href="#login"]').click();
+    });
+</script>
+</body>
+</html>

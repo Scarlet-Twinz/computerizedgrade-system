@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - JPTS University</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        
+        .navbar { background: #0a1e3c; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar { width: 260px; background: white; position: fixed; height: 100%; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar-item { padding: 12px 15px; margin: 5px 0; cursor: pointer; border-radius: 10px; color: #333; transition: 0.3s; }
+        .sidebar-item:hover, .sidebar-item.active { background: #0a1e3c; color: white; }
+        .main-content { margin-left: 280px; padding: 25px; }
+        .data-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; text-align: center; display: inline-block; width: 23%; margin: 1%; cursor: pointer; transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-card h2 { font-size: 32px; color: #0a1e3c; margin: 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; }
+        .grade-A { background: #28a745; color: white; padding: 4px 12px; border-radius: 20px; display: inline-block; font-size: 12px; }
+        .grade-B { background: #17a2b8; color: white; padding: 4px 12px; border-radius: 20px; display: inline-block; font-size: 12px; }
+        .grade-C { background: #ffc107; color: #333; padding: 4px 12px; border-radius: 20px; display: inline-block; font-size: 12px; }
+        .grade-D { background: #fd7e14; color: white; padding: 4px 12px; border-radius: 20px; display: inline-block; font-size: 12px; }
+        .grade-E { background: #dc3545; color: white; padding: 4px 12px; border-radius: 20px; display: inline-block; font-size: 12px; }
+        .grade-F { background: #6c757d; color: white; padding: 4px 12px; border-radius: 20px; display: inline-block; font-size: 12px; }
+        .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; max-height: 500px; overflow-y: auto; padding: 10px; }
+        .course-item { background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #e0e0e0; cursor: pointer; transition: 0.3s; }
+        .course-item:hover { background: #e8eaf0; transform: translateX(5px); }
+        .course-item.selected { background: #0a1e3c; color: white; }
+        .course-code { font-weight: 700; font-size: 16px; }
+        .course-title { font-size: 13px; color: #666; }
+        .course-credit { font-size: 11px; color: #28a745; }
+        .course-item.selected .course-title { color: #ccc; }
+        .course-item.selected .course-credit { color: #ffd700; }
+        .btn-primary { background: #0a1e3c; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .btn-success { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .btn-info { background: #17a2b8; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
+        .search-box { position: relative; margin-bottom: 20px; }
+        .search-box input { padding-left: 40px; border-radius: 25px; }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
+        .pagination { display: flex; justify-content: center; margin-top: 20px; gap: 10px; }
+        .pagination button { padding: 8px 15px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 5px; }
+        @media (max-width: 768px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } .stat-card { width: 48%; } }
+        .toast-msg { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; animation: slideIn 0.3s ease; border-radius: 10px; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div><i class="fas fa-graduation-cap"></i> JPTS University - Student Portal</div>
+        <div><span id="userName"></span> <button class="btn-logout ms-3" id="logoutBtn">Logout</button></div>
+    </div>
+    
+    <div class="sidebar">
+        <h5 class="text-center mb-3">Menu</h5>
+        <div class="sidebar-item active" onclick="loadDashboard()">Dashboard</div>
+        <div class="sidebar-item" onclick="loadResults()">My Results</div>
+        <div class="sidebar-item" onclick="loadCourses()">Course Registration</div>
+        <div class="sidebar-item" onclick="loadTranscript()">Transcript</div>
+        <div class="sidebar-item" onclick="loadProfile()">My Profile</div>
+        <div class="sidebar-item" onclick="loadNotifications()">Notifications</div>
+    </div>
+    
+    <div class="main-content" id="mainContent">
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ========== GET REAL USER DATA FROM DATABASE ==========
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'student') {
+            window.location.href = 'login.html';
+        }
+        
+        document.getElementById('userName').innerHTML = currentUser.name.split(' ')[0];
+        
+        // ========== 100+ COURSES - ALL DEPARTMENTS ==========
+        let allCourses = [
+            // ========== COMPUTER SCIENCE (25 courses) ==========
+            { code: "CSC101", title: "Introduction to Computer Science", credit: 3, dept: "Computer Science", level: "100" },
+            { code: "CSC102", title: "Programming Fundamentals", credit: 3, dept: "Computer Science", level: "100" },
+            { code: "CSC103", title: "Discrete Mathematics", credit: 3, dept: "Computer Science", level: "100" },
+            { code: "CSC104", title: "Digital Logic", credit: 3, dept: "Computer Science", level: "100" },
+            { code: "CSC105", title: "Computer Organization", credit: 3, dept: "Computer Science", level: "100" },
+            { code: "CSC106", title: "Introduction to Web Design", credit: 2, dept: "Computer Science", level: "100" },
+            { code: "CSC201", title: "Data Structures", credit: 3, dept: "Computer Science", level: "200" },
+            { code: "CSC202", title: "Database Systems", credit: 3, dept: "Computer Science", level: "200" },
+            { code: "CSC203", title: "Object-Oriented Programming", credit: 3, dept: "Computer Science", level: "200" },
+            { code: "CSC204", title: "Computer Networks", credit: 3, dept: "Computer Science", level: "200" },
+            { code: "CSC205", title: "Operating Systems", credit: 3, dept: "Computer Science", level: "200" },
+            { code: "CSC206", title: "Algorithm Analysis", credit: 3, dept: "Computer Science", level: "200" },
+            { code: "CSC207", title: "Human-Computer Interaction", credit: 2, dept: "Computer Science", level: "200" },
+            { code: "CSC301", title: "Software Engineering", credit: 3, dept: "Computer Science", level: "300" },
+            { code: "CSC302", title: "Web Development", credit: 3, dept: "Computer Science", level: "300" },
+            { code: "CSC303", title: "Artificial Intelligence", credit: 3, dept: "Computer Science", level: "300" },
+            { code: "CSC304", title: "Machine Learning", credit: 3, dept: "Computer Science", level: "300" },
+            { code: "CSC305", title: "Cybersecurity", credit: 3, dept: "Computer Science", level: "300" },
+            { code: "CSC306", title: "Mobile App Development", credit: 3, dept: "Computer Science", level: "300" },
+            { code: "CSC307", title: "Cloud Computing", credit: 3, dept: "Computer Science", level: "300" },
+            { code: "CSC308", title: "Data Mining", credit: 3, dept: "Computer Science", level: "300" },
+            { code: "CSC401", title: "Big Data Analytics", credit: 3, dept: "Computer Science", level: "400" },
+            { code: "CSC402", title: "Data Science", credit: 3, dept: "Computer Science", level: "400" },
+            { code: "CSC403", title: "Blockchain Technology", credit: 3, dept: "Computer Science", level: "400" },
+            { code: "CSC404", title: "Internet of Things", credit: 3, dept: "Computer Science", level: "400" },
+            { code: "CSC405", title: "Final Year Project", credit: 6, dept: "Computer Science", level: "400" },
+            
+            // ========== SOFTWARE ENGINEERING (15 courses) ==========
+            { code: "SEN101", title: "Introduction to Software Engineering", credit: 3, dept: "Software Engineering", level: "100" },
+            { code: "SEN102", title: "Programming in Java", credit: 3, dept: "Software Engineering", level: "100" },
+            { code: "SEN103", title: "Software Requirements", credit: 3, dept: "Software Engineering", level: "100" },
+            { code: "SEN201", title: "Software Design", credit: 3, dept: "Software Engineering", level: "200" },
+            { code: "SEN202", title: "Software Testing", credit: 3, dept: "Software Engineering", level: "200" },
+            { code: "SEN203", title: "Agile Development", credit: 3, dept: "Software Engineering", level: "200" },
+            { code: "SEN301", title: "DevOps", credit: 3, dept: "Software Engineering", level: "300" },
+            { code: "SEN302", title: "Software Project Management", credit: 3, dept: "Software Engineering", level: "300" },
+            { code: "SEN303", title: "Software Quality Assurance", credit: 3, dept: "Software Engineering", level: "300" },
+            { code: "SEN401", title: "Software Architecture", credit: 3, dept: "Software Engineering", level: "400" },
+            { code: "SEN402", title: "Software Maintenance", credit: 3, dept: "Software Engineering", level: "400" },
+            { code: "SEN403", title: "Software Engineering Project", credit: 6, dept: "Software Engineering", level: "400" },
+            
+            // ========== INFORMATION TECHNOLOGY (12 courses) ==========
+            { code: "ITE101", title: "Introduction to IT", credit: 3, dept: "Information Technology", level: "100" },
+            { code: "ITE102", title: "IT Fundamentals", credit: 3, dept: "Information Technology", level: "100" },
+            { code: "ITE103", title: "Multimedia Systems", credit: 3, dept: "Information Technology", level: "100" },
+            { code: "ITE201", title: "Network Administration", credit: 3, dept: "Information Technology", level: "200" },
+            { code: "ITE202", title: "System Analysis", credit: 3, dept: "Information Technology", level: "200" },
+            { code: "ITE203", title: "IT Project Management", credit: 3, dept: "Information Technology", level: "200" },
+            { code: "ITE301", title: "IT Security", credit: 3, dept: "Information Technology", level: "300" },
+            { code: "ITE302", title: "Database Administration", credit: 3, dept: "Information Technology", level: "300" },
+            { code: "ITE303", title: "IT Service Management", credit: 3, dept: "Information Technology", level: "300" },
+            { code: "ITE401", title: "IT Strategy", credit: 3, dept: "Information Technology", level: "400" },
+            { code: "ITE402", title: "IT Governance", credit: 3, dept: "Information Technology", level: "400" },
+            { code: "ITE403", title: "IT Project", credit: 6, dept: "Information Technology", level: "400" },
+            
+            // ========== CYBER SECURITY (10 courses) ==========
+            { code: "CYS101", title: "Introduction to Cybersecurity", credit: 3, dept: "Cyber Security", level: "100" },
+            { code: "CYS102", title: "Network Security", credit: 3, dept: "Cyber Security", level: "100" },
+            { code: "CYS103", title: "Cryptography", credit: 3, dept: "Cyber Security", level: "100" },
+            { code: "CYS201", title: "Ethical Hacking", credit: 3, dept: "Cyber Security", level: "200" },
+            { code: "CYS202", title: "Digital Forensics", credit: 3, dept: "Cyber Security", level: "200" },
+            { code: "CYS203", title: "Security Operations", credit: 3, dept: "Cyber Security", level: "200" },
+            { code: "CYS301", title: "Incident Response", credit: 3, dept: "Cyber Security", level: "300" },
+            { code: "CYS302", title: "Risk Management", credit: 3, dept: "Cyber Security", level: "300" },
+            { code: "CYS401", title: "Security Compliance", credit: 3, dept: "Cyber Security", level: "400" },
+            { code: "CYS402", title: "Cybersecurity Project", credit: 6, dept: "Cyber Security", level: "400" },
+            
+            // ========== DATA SCIENCE (10 courses) ==========
+            { code: "DSC101", title: "Introduction to Data Science", credit: 3, dept: "Data Science", level: "100" },
+            { code: "DSC102", title: "Statistics for Data Science", credit: 3, dept: "Data Science", level: "100" },
+            { code: "DSC103", title: "Python Programming", credit: 3, dept: "Data Science", level: "100" },
+            { code: "DSC201", title: "Data Visualization", credit: 3, dept: "Data Science", level: "200" },
+            { code: "DSC202", title: "SQL for Data Science", credit: 3, dept: "Data Science", level: "200" },
+            { code: "DSC203", title: "Data Wrangling", credit: 3, dept: "Data Science", level: "200" },
+            { code: "DSC301", title: "Machine Learning", credit: 3, dept: "Data Science", level: "300" },
+            { code: "DSC302", title: "Big Data", credit: 3, dept: "Data Science", level: "300" },
+            { code: "DSC401", title: "Deep Learning", credit: 3, dept: "Data Science", level: "400" },
+            { code: "DSC402", title: "Data Science Project", credit: 6, dept: "Data Science", level: "400" },
+            
+            // ========== ARTIFICIAL INTELLIGENCE (10 courses) ==========
+            { code: "AIN101", title: "Introduction to AI", credit: 3, dept: "AI", level: "100" },
+            { code: "AIN102", title: "Problem Solving", credit: 3, dept: "AI", level: "100" },
+            { code: "AIN103", title: "Knowledge Representation", credit: 3, dept: "AI", level: "100" },
+            { code: "AIN201", title: "Machine Learning", credit: 3, dept: "AI", level: "200" },
+            { code: "AIN202", title: "Natural Language Processing", credit: 3, dept: "AI", level: "200" },
+            { code: "AIN203", title: "Computer Vision", credit: 3, dept: "AI", level: "200" },
+            { code: "AIN301", title: "Robotics", credit: 3, dept: "AI", level: "300" },
+            { code: "AIN302", title: "Expert Systems", credit: 3, dept: "AI", level: "300" },
+            { code: "AIN401", title: "Advanced AI", credit: 3, dept: "AI", level: "400" },
+            { code: "AIN402", title: "AI Project", credit: 6, dept: "AI", level: "400" },
+            
+            // ========== ENGINEERING (20 courses) ==========
+            { code: "ENG101", title: "Engineering Mathematics I", credit: 3, dept: "Engineering", level: "100" },
+            { code: "ENG102", title: "Engineering Drawing", credit: 2, dept: "Engineering", level: "100" },
+            { code: "ENG103", title: "Engineering Mechanics", credit: 3, dept: "Engineering", level: "100" },
+            { code: "ENG104", title: "Materials Science", credit: 3, dept: "Engineering", level: "100" },
+            { code: "ENG105", title: "Electrical Engineering I", credit: 3, dept: "Engineering", level: "100" },
+            { code: "ENG201", title: "Fluid Mechanics", credit: 3, dept: "Engineering", level: "200" },
+            { code: "ENG202", title: "Thermodynamics", credit: 3, dept: "Engineering", level: "200" },
+            { code: "ENG203", title: "Strength of Materials", credit: 3, dept: "Engineering", level: "200" },
+            { code: "ENG204", title: "Electrical Engineering II", credit: 3, dept: "Engineering", level: "200" },
+            { code: "ENG205", title: "Engineering Mathematics II", credit: 3, dept: "Engineering", level: "200" },
+            { code: "ENG301", title: "Control Systems", credit: 3, dept: "Engineering", level: "300" },
+            { code: "ENG302", title: "Mechanical Design", credit: 3, dept: "Engineering", level: "300" },
+            { code: "ENG303", title: "Structural Analysis", credit: 3, dept: "Engineering", level: "300" },
+            { code: "ENG304", title: "Thermal Engineering", credit: 3, dept: "Engineering", level: "300" },
+            { code: "ENG305", title: "Engineering Economics", credit: 2, dept: "Engineering", level: "300" },
+            { code: "ENG401", title: "Project Management", credit: 3, dept: "Engineering", level: "400" },
+            { code: "ENG402", title: "Industrial Training", credit: 3, dept: "Engineering", level: "400" },
+            { code: "ENG403", title: "Engineering Ethics", credit: 2, dept: "Engineering", level: "400" },
+            { code: "ENG404", title: "Engineering Design", credit: 3, dept: "Engineering", level: "400" },
+            { code: "ENG405", title: "Final Year Project", credit: 6, dept: "Engineering", level: "400" },
+            
+            // ========== MECHANICAL ENGINEERING (12 courses) ==========
+            { code: "MEC101", title: "Introduction to Mechanical Eng", credit: 3, dept: "Mechanical Engineering", level: "100" },
+            { code: "MEC102", title: "Engineering Drawing", credit: 2, dept: "Mechanical Engineering", level: "100" },
+            { code: "MEC103", title: "Statics", credit: 3, dept: "Mechanical Engineering", level: "100" },
+            { code: "MEC201", title: "Dynamics", credit: 3, dept: "Mechanical Engineering", level: "200" },
+            { code: "MEC202", title: "Thermodynamics", credit: 3, dept: "Mechanical Engineering", level: "200" },
+            { code: "MEC203", title: "Fluid Mechanics", credit: 3, dept: "Mechanical Engineering", level: "200" },
+            { code: "MEC301", title: "Heat Transfer", credit: 3, dept: "Mechanical Engineering", level: "300" },
+            { code: "MEC302", title: "Machine Design", credit: 3, dept: "Mechanical Engineering", level: "300" },
+            { code: "MEC303", title: "Manufacturing Processes", credit: 3, dept: "Mechanical Engineering", level: "300" },
+            { code: "MEC401", title: "Refrigeration", credit: 3, dept: "Mechanical Engineering", level: "400" },
+            { code: "MEC402", title: "Air Conditioning", credit: 3, dept: "Mechanical Engineering", level: "400" },
+            { code: "MEC403", title: "Mechanical Engineering Project", credit: 6, dept: "Mechanical Engineering", level: "400" },
+            
+            // ========== ELECTRICAL ENGINEERING (12 courses) ==========
+            { code: "ELE101", title: "Introduction to Electrical Eng", credit: 3, dept: "Electrical Engineering", level: "100" },
+            { code: "ELE102", title: "Circuit Analysis I", credit: 3, dept: "Electrical Engineering", level: "100" },
+            { code: "ELE103", title: "Digital Electronics", credit: 3, dept: "Electrical Engineering", level: "100" },
+            { code: "ELE201", title: "Circuit Analysis II", credit: 3, dept: "Electrical Engineering", level: "200" },
+            { code: "ELE202", title: "Electromagnetism", credit: 3, dept: "Electrical Engineering", level: "200" },
+            { code: "ELE203", title: "Signals and Systems", credit: 3, dept: "Electrical Engineering", level: "200" },
+            { code: "ELE301", title: "Power Systems", credit: 3, dept: "Electrical Engineering", level: "300" },
+            { code: "ELE302", title: "Control Systems", credit: 3, dept: "Electrical Engineering", level: "300" },
+            { code: "ELE303", title: "Communication Systems", credit: 3, dept: "Electrical Engineering", level: "300" },
+            { code: "ELE401", title: "Power Electronics", credit: 3, dept: "Electrical Engineering", level: "400" },
+            { code: "ELE402", title: "Renewable Energy", credit: 3, dept: "Electrical Engineering", level: "400" },
+            { code: "ELE403", title: "Electrical Engineering Project", credit: 6, dept: "Electrical Engineering", level: "400" },
+            
+            // ========== CIVIL ENGINEERING (12 courses) ==========
+            { code: "CVL101", title: "Introduction to Civil Eng", credit: 3, dept: "Civil Engineering", level: "100" },
+            { code: "CVL102", title: "Engineering Drawing", credit: 2, dept: "Civil Engineering", level: "100" },
+            { code: "CVL103", title: "Surveying", credit: 3, dept: "Civil Engineering", level: "100" },
+            { code: "CVL201", title: "Structural Mechanics", credit: 3, dept: "Civil Engineering", level: "200" },
+            { code: "CVL202", title: "Fluid Mechanics", credit: 3, dept: "Civil Engineering", level: "200" },
+            { code: "CVL203", title: "Geotechnical Engineering", credit: 3, dept: "Civil Engineering", level: "200" },
+            { code: "CVL301", title: "Structural Design", credit: 3, dept: "Civil Engineering", level: "300" },
+            { code: "CVL302", title: "Transportation Engineering", credit: 3, dept: "Civil Engineering", level: "300" },
+            { code: "CVL303", title: "Hydrology", credit: 3, dept: "Civil Engineering", level: "300" },
+            { code: "CVL401", title: "Construction Management", credit: 3, dept: "Civil Engineering", level: "400" },
+            { code: "CVL402", title: "Environmental Engineering", credit: 3, dept: "Civil Engineering", level: "400" },
+            { code: "CVL403", title: "Civil Engineering Project", credit: 6, dept: "Civil Engineering", level: "400" },
+            
+            // ========== CHEMICAL ENGINEERING (10 courses) ==========
+            { code: "CHE101", title: "Introduction to Chemical Eng", credit: 3, dept: "Chemical Engineering", level: "100" },
+            { code: "CHE102", title: "Material Balances", credit: 3, dept: "Chemical Engineering", level: "100" },
+            { code: "CHE103", title: "Energy Balances", credit: 3, dept: "Chemical Engineering", level: "100" },
+            { code: "CHE201", title: "Fluid Mechanics", credit: 3, dept: "Chemical Engineering", level: "200" },
+            { code: "CHE202", title: "Heat Transfer", credit: 3, dept: "Chemical Engineering", level: "200" },
+            { code: "CHE203", title: "Mass Transfer", credit: 3, dept: "Chemical Engineering", level: "200" },
+            { code: "CHE301", title: "Chemical Reaction Engineering", credit: 3, dept: "Chemical Engineering", level: "300" },
+            { code: "CHE302", title: "Process Design", credit: 3, dept: "Chemical Engineering", level: "300" },
+            { code: "CHE401", title: "Process Control", credit: 3, dept: "Chemical Engineering", level: "400" },
+            { code: "CHE402", title: "Chemical Engineering Project", credit: 6, dept: "Chemical Engineering", level: "400" },
+            
+            // ========== PETROLEUM ENGINEERING (10 courses) ==========
+            { code: "PET101", title: "Introduction to Petroleum Eng", credit: 3, dept: "Petroleum Engineering", level: "100" },
+            { code: "PET102", title: "Petroleum Geology", credit: 3, dept: "Petroleum Engineering", level: "100" },
+            { code: "PET103", title: "Reservoir Engineering", credit: 3, dept: "Petroleum Engineering", level: "100" },
+            { code: "PET201", title: "Drilling Engineering", credit: 3, dept: "Petroleum Engineering", level: "200" },
+            { code: "PET202", title: "Production Engineering", credit: 3, dept: "Petroleum Engineering", level: "200" },
+            { code: "PET203", title: "Well Logging", credit: 3, dept: "Petroleum Engineering", level: "200" },
+            { code: "PET301", title: "Petroleum Economics", credit: 3, dept: "Petroleum Engineering", level: "300" },
+            { code: "PET302", title: "Reservoir Simulation", credit: 3, dept: "Petroleum Engineering", level: "300" },
+            { code: "PET401", title: "Natural Gas Engineering", credit: 3, dept: "Petroleum Engineering", level: "400" },
+            { code: "PET402", title: "Petroleum Engineering Project", credit: 6, dept: "Petroleum Engineering", level: "400" },
+            
+            // ========== BUSINESS ADMINISTRATION (15 courses) ==========
+            { code: "BUS101", title: "Introduction to Business", credit: 3, dept: "Business", level: "100" },
+            { code: "BUS102", title: "Business Mathematics", credit: 3, dept: "Business", level: "100" },
+            { code: "BUS103", title: "Principles of Management", credit: 3, dept: "Business", level: "100" },
+            { code: "BUS104", title: "Business Communication", credit: 2, dept: "Business", level: "100" },
+            { code: "BUS201", title: "Marketing Management", credit: 3, dept: "Business", level: "200" },
+            { code: "BUS202", title: "Organizational Behavior", credit: 3, dept: "Business", level: "200" },
+            { code: "BUS203", title: "Financial Management", credit: 3, dept: "Business", level: "200" },
+            { code: "BUS204", title: "Human Resource Management", credit: 3, dept: "Business", level: "200" },
+            { code: "BUS301", title: "Business Ethics", credit: 2, dept: "Business", level: "300" },
+            { code: "BUS302", title: "Entrepreneurship", credit: 3, dept: "Business", level: "300" },
+            { code: "BUS303", title: "International Business", credit: 3, dept: "Business", level: "300" },
+            { code: "BUS304", title: "Operations Management", credit: 3, dept: "Business", level: "300" },
+            { code: "BUS401", title: "Strategic Management", credit: 3, dept: "Business", level: "400" },
+            { code: "BUS402", title: "Business Research", credit: 3, dept: "Business", level: "400" },
+            { code: "BUS403", title: "Business Policy", credit: 3, dept: "Business", level: "400" },
+            
+            // ========== ACCOUNTING (12 courses) ==========
+            { code: "ACC101", title: "Principles of Accounting", credit: 3, dept: "Accounting", level: "100" },
+            { code: "ACC102", title: "Financial Accounting I", credit: 3, dept: "Accounting", level: "100" },
+            { code: "ACC103", title: "Cost Accounting", credit: 3, dept: "Accounting", level: "100" },
+            { code: "ACC201", title: "Financial Accounting II", credit: 3, dept: "Accounting", level: "200" },
+            { code: "ACC202", title: "Management Accounting", credit: 3, dept: "Accounting", level: "200" },
+            { code: "ACC203", title: "Corporate Accounting", credit: 3, dept: "Accounting", level: "200" },
+            { code: "ACC301", title: "Taxation", credit: 3, dept: "Accounting", level: "300" },
+            { code: "ACC302", title: "Auditing", credit: 3, dept: "Accounting", level: "300" },
+            { code: "ACC303", title: "Financial Reporting", credit: 3, dept: "Accounting", level: "300" },
+            { code: "ACC401", title: "Advanced Accounting", credit: 3, dept: "Accounting", level: "400" },
+            { code: "ACC402", title: "Accounting Information Systems", credit: 3, dept: "Accounting", level: "400" },
+            { code: "ACC403", title: "Accounting Project", credit: 6, dept: "Accounting", level: "400" },
+            
+            // ========== ECONOMICS (12 courses) ==========
+            { code: "ECO101", title: "Principles of Economics", credit: 3, dept: "Economics", level: "100" },
+            { code: "ECO102", title: "Microeconomics", credit: 3, dept: "Economics", level: "100" },
+            { code: "ECO103", title: "Macroeconomics", credit: 3, dept: "Economics", level: "100" },
+            { code: "ECO201", title: "Econometrics", credit: 3, dept: "Economics", level: "200" },
+            { code: "ECO202", title: "International Economics", credit: 3, dept: "Economics", level: "200" },
+            { code: "ECO203", title: "Development Economics", credit: 3, dept: "Economics", level: "200" },
+            { code: "ECO204", title: "Monetary Economics", credit: 3, dept: "Economics", level: "200" },
+            { code: "ECO301", title: "Public Finance", credit: 3, dept: "Economics", level: "300" },
+            { code: "ECO302", title: "Labor Economics", credit: 3, dept: "Economics", level: "300" },
+            { code: "ECO303", title: "Industrial Economics", credit: 3, dept: "Economics", level: "300" },
+            { code: "ECO401", title: "Economic Policy", credit: 3, dept: "Economics", level: "400" },
+            { code: "ECO402", title: "Economics Project", credit: 6, dept: "Economics", level: "400" },
+            
+            // ========== LAW (15 courses) ==========
+            { code: "LAW101", title: "Introduction to Law", credit: 3, dept: "Law", level: "100" },
+            { code: "LAW102", title: "Legal Methods", credit: 3, dept: "Law", level: "100" },
+            { code: "LAW103", title: "Nigerian Legal System", credit: 3, dept: "Law", level: "100" },
+            { code: "LAW104", title: "Legal Writing", credit: 2, dept: "Law", level: "100" },
+            { code: "LAW201", title: "Constitutional Law", credit: 3, dept: "Law", level: "200" },
+            { code: "LAW202", title: "Contract Law", credit: 3, dept: "Law", level: "200" },
+            { code: "LAW203", title: "Criminal Law", credit: 3, dept: "Law", level: "200" },
+            { code: "LAW204", title: "Tort Law", credit: 3, dept: "Law", level: "200" },
+            { code: "LAW301", title: "Company Law", credit: 3, dept: "Law", level: "300" },
+            { code: "LAW302", title: "Property Law", credit: 3, dept: "Law", level: "300" },
+            { code: "LAW303", title: "International Law", credit: 3, dept: "Law", level: "300" },
+            { code: "LAW304", title: "Human Rights Law", credit: 3, dept: "Law", level: "300" },
+            { code: "LAW401", title: "Corporate Law", credit: 3, dept: "Law", level: "400" },
+            { code: "LAW402", title: "Legal Practice", credit: 3, dept: "Law", level: "400" },
+            { code: "LAW403", title: "Law Project", credit: 6, dept: "Law", level: "400" },
+            
+            // ========== MASS COMMUNICATION (15 courses) ==========
+            { code: "MAC101", title: "Introduction to Mass Comm", credit: 3, dept: "Mass Comm", level: "100" },
+            { code: "MAC102", title: "Media Writing", credit: 3, dept: "Mass Comm", level: "100" },
+            { code: "MAC103", title: "Principles of Broadcasting", credit: 3, dept: "Mass Comm", level: "100" },
+            { code: "MAC104", title: "Journalism", credit: 3, dept: "Mass Comm", level: "100" },
+            { code: "MAC201", title: "Public Relations", credit: 3, dept: "Mass Comm", level: "200" },
+            { code: "MAC202", title: "Broadcast Journalism", credit: 3, dept: "Mass Comm", level: "200" },
+            { code: "MAC203", title: "Advertising", credit: 3, dept: "Mass Comm", level: "200" },
+            { code: "MAC204", title: "Media Ethics", credit: 2, dept: "Mass Comm", level: "200" },
+            { code: "MAC301", title: "Digital Media", credit: 3, dept: "Mass Comm", level: "300" },
+            { code: "MAC302", title: "Media Law", credit: 3, dept: "Mass Comm", level: "300" },
+            { code: "MAC303", title: "Media Management", credit: 3, dept: "Mass Comm", level: "300" },
+            { code: "MAC304", title: "Feature Writing", credit: 3, dept: "Mass Comm", level: "300" },
+            { code: "MAC401", title: "Media Research", credit: 3, dept: "Mass Comm", level: "400" },
+            { code: "MAC402", title: "Media Project", credit: 6, dept: "Mass Comm", level: "400" },
+            
+            // ========== POLITICAL SCIENCE (10 courses) ==========
+            { code: "POL101", title: "Introduction to Political Science", credit: 3, dept: "Political Science", level: "100" },
+            { code: "POL102", title: "Political Theory", credit: 3, dept: "Political Science", level: "100" },
+            { code: "POL103", title: "Nigerian Government", credit: 3, dept: "Political Science", level: "100" },
+            { code: "POL201", title: "Comparative Politics", credit: 3, dept: "Political Science", level: "200" },
+            { code: "POL202", title: "International Relations", credit: 3, dept: "Political Science", level: "200" },
+            { code: "POL203", title: "Public Administration", credit: 3, dept: "Political Science", level: "200" },
+            { code: "POL301", title: "Political Economy", credit: 3, dept: "Political Science", level: "300" },
+            { code: "POL302", title: "Research Methods", credit: 3, dept: "Political Science", level: "300" },
+            { code: "POL401", title: "Foreign Policy", credit: 3, dept: "Political Science", level: "400" },
+            { code: "POL402", title: "Political Science Project", credit: 6, dept: "Political Science", level: "400" },
+            
+            // ========== PSYCHOLOGY (10 courses) ==========
+            { code: "PSY101", title: "Introduction to Psychology", credit: 3, dept: "Psychology", level: "100" },
+            { code: "PSY102", title: "Developmental Psychology", credit: 3, dept: "Psychology", level: "100" },
+            { code: "PSY103", title: "Social Psychology", credit: 3, dept: "Psychology", level: "100" },
+            { code: "PSY201", title: "Cognitive Psychology", credit: 3, dept: "Psychology", level: "200" },
+            { code: "PSY202", title: "Abnormal Psychology", credit: 3, dept: "Psychology", level: "200" },
+            { code: "PSY203", title: "Personality Psychology", credit: 3, dept: "Psychology", level: "200" },
+            { code: "PSY301", title: "Clinical Psychology", credit: 3, dept: "Psychology", level: "300" },
+            { code: "PSY302", title: "Counseling Psychology", credit: 3, dept: "Psychology", level: "300" },
+            { code: "PSY401", title: "Industrial Psychology", credit: 3, dept: "Psychology", level: "400" },
+            { code: "PSY402", title: "Psychology Project", credit: 6, dept: "Psychology", level: "400" },
+            
+            // ========== SOCIOLOGY (10 courses) ==========
+            { code: "SOC101", title: "Introduction to Sociology", credit: 3, dept: "Sociology", level: "100" },
+            { code: "SOC102", title: "Social Theory", credit: 3, dept: "Sociology", level: "100" },
+            { code: "SOC103", title: "Nigerian Society", credit: 3, dept: "Sociology", level: "100" },
+            { code: "SOC201", title: "Social Stratification", credit: 3, dept: "Sociology", level: "200" },
+            { code: "SOC202", title: "Urban Sociology", credit: 3, dept: "Sociology", level: "200" },
+            { code: "SOC203", title: "Rural Sociology", credit: 3, dept: "Sociology", level: "200" },
+            { code: "SOC301", title: "Sociology of Development", credit: 3, dept: "Sociology", level: "300" },
+            { code: "SOC302", title: "Research Methods", credit: 3, dept: "Sociology", level: "300" },
+            { code: "SOC401", title: "Social Problems", credit: 3, dept: "Sociology", level: "400" },
+            { code: "SOC402", title: "Sociology Project", credit: 6, dept: "Sociology", level: "400" },
+            
+            // ========== MATHEMATICS (10 courses) ==========
+            { code: "MTH101", title: "Calculus I", credit: 3, dept: "Mathematics", level: "100" },
+            { code: "MTH102", title: "Calculus II", credit: 3, dept: "Mathematics", level: "100" },
+            { code: "MTH103", title: "Linear Algebra", credit: 3, dept: "Mathematics", level: "100" },
+            { code: "MTH201", title: "Differential Equations", credit: 3, dept: "Mathematics", level: "200" },
+            { code: "MTH202", title: "Abstract Algebra", credit: 3, dept: "Mathematics", level: "200" },
+            { code: "MTH203", title: "Real Analysis", credit: 3, dept: "Mathematics", level: "200" },
+            { code: "MTH301", title: "Complex Analysis", credit: 3, dept: "Mathematics", level: "300" },
+            { code: "MTH302", title: "Numerical Methods", credit: 3, dept: "Mathematics", level: "300" },
+            { code: "MTH401", title: "Operations Research", credit: 3, dept: "Mathematics", level: "400" },
+            { code: "MTH402", title: "Mathematics Project", credit: 6, dept: "Mathematics", level: "400" },
+            
+            // ========== STATISTICS (10 courses) ==========
+            { code: "STA101", title: "Introduction to Statistics", credit: 3, dept: "Statistics", level: "100" },
+            { code: "STA102", title: "Probability Theory", credit: 3, dept: "Statistics", level: "100" },
+            { code: "STA103", title: "Descriptive Statistics", credit: 3, dept: "Statistics", level: "100" },
+            { code: "STA201", title: "Inferential Statistics", credit: 3, dept: "Statistics", level: "200" },
+            { code: "STA202", title: "Regression Analysis", credit: 3, dept: "Statistics", level: "200" },
+            { code: "STA203", title: "Sampling Techniques", credit: 3, dept: "Statistics", level: "200" },
+            { code: "STA301", title: "Time Series Analysis", credit: 3, dept: "Statistics", level: "300" },
+            { code: "STA302", title: "Multivariate Analysis", credit: 3, dept: "Statistics", level: "300" },
+            { code: "STA401", title: "Statistical Computing", credit: 3, dept: "Statistics", level: "400" },
+            { code: "STA402", title: "Statistics Project", credit: 6, dept: "Statistics", level: "400" },
+            
+            // ========== PHYSICS (10 courses) ==========
+            { code: "PHY101", title: "General Physics I", credit: 3, dept: "Physics", level: "100" },
+            { code: "PHY102", title: "General Physics II", credit: 3, dept: "Physics", level: "100" },
+            { code: "PHY103", title: "Mechanics", credit: 3, dept: "Physics", level: "100" },
+            { code: "PHY201", title: "Electricity and Magnetism", credit: 3, dept: "Physics", level: "200" },
+            { code: "PHY202", title: "Optics", credit: 3, dept: "Physics", level: "200" },
+            { code: "PHY203", title: "Thermal Physics", credit: 3, dept: "Physics", level: "200" },
+            { code: "PHY301", title: "Quantum Mechanics", credit: 3, dept: "Physics", level: "300" },
+            { code: "PHY302", title: "Solid State Physics", credit: 3, dept: "Physics", level: "300" },
+            { code: "PHY401", title: "Nuclear Physics", credit: 3, dept: "Physics", level: "400" },
+            { code: "PHY402", title: "Physics Project", credit: 6, dept: "Physics", level: "400" },
+            
+            // ========== CHEMISTRY (10 courses) ==========
+            { code: "CHM101", title: "General Chemistry I", credit: 3, dept: "Chemistry", level: "100" },
+            { code: "CHM102", title: "General Chemistry II", credit: 3, dept: "Chemistry", level: "100" },
+            { code: "CHM103", title: "Organic Chemistry I", credit: 3, dept: "Chemistry", level: "100" },
+            { code: "CHM201", title: "Organic Chemistry II", credit: 3, dept: "Chemistry", level: "200" },
+            { code: "CHM202", title: "Inorganic Chemistry", credit: 3, dept: "Chemistry", level: "200" },
+            { code: "CHM203", title: "Physical Chemistry", credit: 3, dept: "Chemistry", level: "200" },
+            { code: "CHM301", title: "Analytical Chemistry", credit: 3, dept: "Chemistry", level: "300" },
+            { code: "CHM302", title: "Industrial Chemistry", credit: 3, dept: "Chemistry", level: "300" },
+            { code: "CHM401", title: "Environmental Chemistry", credit: 3, dept: "Chemistry", level: "400" },
+            { code: "CHM402", title: "Chemistry Project", credit: 6, dept: "Chemistry", level: "400" },
+            
+            // ========== BIOLOGY (10 courses) ==========
+            { code: "BIO101", title: "General Biology I", credit: 3, dept: "Biology", level: "100" },
+            { code: "BIO102", title: "General Biology II", credit: 3, dept: "Biology", level: "100" },
+            { code: "BIO103", title: "Cell Biology", credit: 3, dept: "Biology", level: "100" },
+            { code: "BIO201", title: "Genetics", credit: 3, dept: "Biology", level: "200" },
+            { code: "BIO202", title: "Ecology", credit: 3, dept: "Biology", level: "200" },
+            { code: "BIO203", title: "Evolution", credit: 3, dept: "Biology", level: "200" },
+            { code: "BIO301", title: "Molecular Biology", credit: 3, dept: "Biology", level: "300" },
+            { code: "BIO302", title: "Microbiology", credit: 3, dept: "Biology", level: "300" },
+            { code: "BIO401", title: "Biotechnology", credit: 3, dept: "Biology", level: "400" },
+            { code: "BIO402", title: "Biology Project", credit: 6, dept: "Biology", level: "400" },
+            
+            // ========== BIOCHEMISTRY (10 courses) ==========
+            { code: "BCH101", title: "Introduction to Biochemistry", credit: 3, dept: "Biochemistry", level: "100" },
+            { code: "BCH102", title: "Biomolecules", credit: 3, dept: "Biochemistry", level: "100" },
+            { code: "BCH103", title: "Enzymology", credit: 3, dept: "Biochemistry", level: "100" },
+            { code: "BCH201", title: "Metabolism", credit: 3, dept: "Biochemistry", level: "200" },
+            { code: "BCH202", title: "Protein Chemistry", credit: 3, dept: "Biochemistry", level: "200" },
+            { code: "BCH203", title: "Carbohydrate Chemistry", credit: 3, dept: "Biochemistry", level: "200" },
+            { code: "BCH301", title: "Lipid Chemistry", credit: 3, dept: "Biochemistry", level: "300" },
+            { code: "BCH302", title: "Clinical Biochemistry", credit: 3, dept: "Biochemistry", level: "300" },
+            { code: "BCH401", title: "Advanced Biochemistry", credit: 3, dept: "Biochemistry", level: "400" },
+            { code: "BCH402", title: "Biochemistry Project", credit: 6, dept: "Biochemistry", level: "400" },
+            
+            // ========== MICROBIOLOGY (10 courses) ==========
+            { code: "MCB101", title: "Introduction to Microbiology", credit: 3, dept: "Microbiology", level: "100" },
+            { code: "MCB102", title: "Bacteriology", credit: 3, dept: "Microbiology", level: "100" },
+            { code: "MCB103", title: "Virology", credit: 3, dept: "Microbiology", level: "100" },
+            { code: "MCB201", title: "Mycology", credit: 3, dept: "Microbiology", level: "200" },
+            { code: "MCB202", title: "Parasitology", credit: 3, dept: "Microbiology", level: "200" },
+            { code: "MCB203", title: "Immunology", credit: 3, dept: "Microbiology", level: "200" },
+            { code: "MCB301", title: "Food Microbiology", credit: 3, dept: "Microbiology", level: "300" },
+            { code: "MCB302", title: "Environmental Microbiology", credit: 3, dept: "Microbiology", level: "300" },
+            { code: "MCB401", title: "Medical Microbiology", credit: 3, dept: "Microbiology", level: "400" },
+            { code: "MCB402", title: "Microbiology Project", credit: 6, dept: "Microbiology", level: "400" },
+            
+            // ========== NURSING (10 courses) ==========
+            { code: "NRS101", title: "Introduction to Nursing", credit: 3, dept: "Nursing", level: "100" },
+            { code: "NRS102", title: "Fundamentals of Nursing", credit: 3, dept: "Nursing", level: "100" },
+            { code: "NRS103", title: "Anatomy and Physiology", credit: 3, dept: "Nursing", level: "100" },
+            { code: "NRS201", title: "Medical-Surgical Nursing", credit: 3, dept: "Nursing", level: "200" },
+            { code: "NRS202", title: "Maternal Health", credit: 3, dept: "Nursing", level: "200" },
+            { code: "NRS203", title: "Child Health Nursing", credit: 3, dept: "Nursing", level: "200" },
+            { code: "NRS301", title: "Community Health Nursing", credit: 3, dept: "Nursing", level: "300" },
+            { code: "NRS302", title: "Mental Health Nursing", credit: 3, dept: "Nursing", level: "300" },
+            { code: "NRS401", title: "Leadership in Nursing", credit: 3, dept: "Nursing", level: "400" },
+            { code: "NRS402", title: "Nursing Project", credit: 6, dept: "Nursing", level: "400" },
+            
+            // ========== MEDICINE (10 courses) ==========
+            { code: "MED101", title: "Introduction to Medicine", credit: 3, dept: "Medicine", level: "100" },
+            { code: "MED102", title: "Human Anatomy", credit: 3, dept: "Medicine", level: "100" },
+            { code: "MED103", title: "Physiology", credit: 3, dept: "Medicine", level: "100" },
+            { code: "MED201", title: "Pathology", credit: 3, dept: "Medicine", level: "200" },
+            { code: "MED202", title: "Pharmacology", credit: 3, dept: "Medicine", level: "200" },
+            { code: "MED203", title: "Microbiology", credit: 3, dept: "Medicine", level: "200" },
+            { code: "MED301", title: "Internal Medicine", credit: 3, dept: "Medicine", level: "300" },
+            { code: "MED302", title: "Surgery", credit: 3, dept: "Medicine", level: "300" },
+            { code: "MED401", title: "Pediatrics", credit: 3, dept: "Medicine", level: "400" },
+            { code: "MED402", title: "Obstetrics", credit: 3, dept: "Medicine", level: "400" },
+            
+            // ========== PHARMACY (10 courses) ==========
+            { code: "PHA101", title: "Introduction to Pharmacy", credit: 3, dept: "Pharmacy", level: "100" },
+            { code: "PHA102", title: "Pharmaceutical Chemistry", credit: 3, dept: "Pharmacy", level: "100" },
+            { code: "PHA103", title: "Pharmacognosy", credit: 3, dept: "Pharmacy", level: "100" },
+            { code: "PHA201", title: "Pharmacology", credit: 3, dept: "Pharmacy", level: "200" },
+            { code: "PHA202", title: "Pharmaceutics", credit: 3, dept: "Pharmacy", level: "200" },
+            { code: "PHA203", title: "Clinical Pharmacy", credit: 3, dept: "Pharmacy", level: "200" },
+            { code: "PHA301", title: "Hospital Pharmacy", credit: 3, dept: "Pharmacy", level: "300" },
+            { code: "PHA302", title: "Community Pharmacy", credit: 3, dept: "Pharmacy", level: "300" },
+            { code: "PHA401", title: "Pharmacy Practice", credit: 3, dept: "Pharmacy", level: "400" },
+            { code: "PHA402", title: "Pharmacy Project", credit: 6, dept: "Pharmacy", level: "400" },
+            
+            // ========== DENTISTRY (8 courses) ==========
+            { code: "DEN101", title: "Introduction to Dentistry", credit: 3, dept: "Dentistry", level: "100" },
+            { code: "DEN102", title: "Oral Anatomy", credit: 3, dept: "Dentistry", level: "100" },
+            { code: "DEN103", title: "Dental Materials", credit: 3, dept: "Dentistry", level: "100" },
+            { code: "DEN201", title: "Oral Pathology", credit: 3, dept: "Dentistry", level: "200" },
+            { code: "DEN202", title: "Restorative Dentistry", credit: 3, dept: "Dentistry", level: "200" },
+            { code: "DEN301", title: "Oral Surgery", credit: 3, dept: "Dentistry", level: "300" },
+            { code: "DEN401", title: "Pediatric Dentistry", credit: 3, dept: "Dentistry", level: "400" },
+            { code: "DEN402", title: "Dentistry Project", credit: 6, dept: "Dentistry", level: "400" },
+            
+            // ========== VETERINARY MEDICINE (8 courses) ==========
+            { code: "VET101", title: "Introduction to Veterinary", credit: 3, dept: "Veterinary", level: "100" },
+            { code: "VET102", title: "Animal Anatomy", credit: 3, dept: "Veterinary", level: "100" },
+            { code: "VET103", title: "Animal Physiology", credit: 3, dept: "Veterinary", level: "100" },
+            { code: "VET201", title: "Animal Pathology", credit: 3, dept: "Veterinary", level: "200" },
+            { code: "VET202", title: "Pharmacology", credit: 3, dept: "Veterinary", level: "200" },
+            { code: "VET301", title: "Clinical Medicine", credit: 3, dept: "Veterinary", level: "300" },
+            { code: "VET401", title: "Surgery", credit: 3, dept: "Veterinary", level: "400" },
+            { code: "VET402", title: "Veterinary Project", credit: 6, dept: "Veterinary", level: "400" },
+            
+            // ========== AGRICULTURE (10 courses) ==========
+            { code: "AGR101", title: "Introduction to Agriculture", credit: 3, dept: "Agriculture", level: "100" },
+            { code: "AGR102", title: "Crop Science", credit: 3, dept: "Agriculture", level: "100" },
+            { code: "AGR103", title: "Soil Science", credit: 3, dept: "Agriculture", level: "100" },
+            { code: "AGR201", title: "Animal Science", credit: 3, dept: "Agriculture", level: "200" },
+            { code: "AGR202", title: "Agricultural Economics", credit: 3, dept: "Agriculture", level: "200" },
+            { code: "AGR203", title: "Farm Management", credit: 3, dept: "Agriculture", level: "200" },
+            { code: "AGR301", title: "Agronomy", credit: 3, dept: "Agriculture", level: "300" },
+            { code: "AGR302", title: "Extension Education", credit: 3, dept: "Agriculture", level: "300" },
+            { code: "AGR401", title: "Agricultural Engineering", credit: 3, dept: "Agriculture", level: "400" },
+            { code: "AGR402", title: "Agriculture Project", credit: 6, dept: "Agriculture", level: "400" },
+            
+            // ========== ARCHITECTURE (8 courses) ==========
+            { code: "ARC101", title: "Introduction to Architecture", credit: 3, dept: "Architecture", level: "100" },
+            { code: "ARC102", title: "Architectural Drawing", credit: 2, dept: "Architecture", level: "100" },
+            { code: "ARC103", title: "Design Studio I", credit: 3, dept: "Architecture", level: "100" },
+            { code: "ARC201", title: "Building Materials", credit: 3, dept: "Architecture", level: "200" },
+            { code: "ARC202", title: "Structural Design", credit: 3, dept: "Architecture", level: "200" },
+            { code: "ARC301", title: "Environmental Design", credit: 3, dept: "Architecture", level: "300" },
+            { code: "ARC401", title: "Urban Design", credit: 3, dept: "Architecture", level: "400" },
+            { code: "ARC402", title: "Architecture Project", credit: 6, dept: "Architecture", level: "400" }
+        ];
+        
+        let registeredCourses = JSON.parse(localStorage.getItem('registeredCourses')) || [];
+        let publishedResults = JSON.parse(localStorage.getItem('published_results')) || [];
+        let myResults = publishedResults.filter(r => r.studentId === currentUser.id);
+        let notifications = JSON.parse(localStorage.getItem('student_notifications')) || [];
+        
+        function showMessage(msg, type) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} toast-msg`;
+            toast.innerHTML = msg + '<button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function calculateGrade(score) {
+            if (score >= 70) return { grade: 'A', point: 5.0 };
+            if (score >= 60) return { grade: 'B', point: 4.0 };
+            if (score >= 50) return { grade: 'C', point: 3.0 };
+            if (score >= 45) return { grade: 'D', point: 2.0 };
+            if (score >= 40) return { grade: 'E', point: 1.0 };
+            return { grade: 'F', point: 0.0 };
+        }
+        
+        function loadDashboard() {
+            let totalPoints = 0, totalCredits = 0;
+            myResults.forEach(r => {
+                totalPoints += r.point * r.credit;
+                totalCredits += r.credit;
+            });
+            const cgpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
+            
+            document.getElementById('mainContent').innerHTML = `
+                <div class="data-card">
+                    <h5>Welcome, ${currentUser.name}!</h5>
+                    <div class="row">
+                        <div class="col-md-3"><div class="stat-card" onclick="loadResults()"><h2>${myResults.length}</h2><p>Courses Taken</p><small>Click to view</small></div></div>
+                        <div class="col-md-3"><div class="stat-card" onclick="loadResults()"><h2>${cgpa}</h2><p>CGPA</p><small>Click to view</small></div></div>
+                        <div class="col-md-3"><div class="stat-card" onclick="loadCourses()"><h2>${registeredCourses.length}</h2><p>Registered Courses</p><small>Click to register</small></div></div>
+                        <div class="col-md-3"><div class="stat-card"><h2>Paid</h2><p>Fee Status</p><small>All good</small></div></div>
+                    </div>
+                </div>
+                <div class="data-card">
+                    <h5>Quick Actions</h5>
+                    <button class="btn-primary" onclick="loadCourses()"><i class="fas fa-book me-2"></i>Register Courses</button>
+                    <button class="btn-success" onclick="loadResults()"><i class="fas fa-chart-line me-2"></i>View Results</button>
+                    <button class="btn-info" onclick="loadTranscript()"><i class="fas fa-file-pdf me-2"></i>Download Transcript</button>
+                </div>
+                <div class="data-card">
+                    <h5>Latest Announcements</h5>
+                    <ul>
+                        <li>Results are published by the Examination Office</li>
+                        <li>Contact your HOD for result complaints</li>
+                        <li>Course registration deadline: December 15th, 2024</li>
+                        <li>Transcripts available upon request</li>
+                    </ul>
+                </div>
+            `;
+        }
+        
+        function loadResults() {
+            if (myResults.length === 0) {
+                document.getElementById('mainContent').innerHTML = `
+                    <div class="data-card">
+                        <h5>My Results</h5>
+                        <div class="alert alert-info">No results published yet. Results appear here after Examination Officer publishes them.</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let totalPoints = 0, totalCredits = 0;
+            let html = `<div class="data-card"><h5>My Results</h5>
+                        <div class="table-responsive"><table class="table"><thead>
+                        <tr><th>Course Code</th><th>Course Title</th><th>Credit</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th><th>GP</th>
+                        </thead><tbody>`;
+            
+            myResults.forEach(r => {
+                html += `<tr>
+                    <td><strong>${r.courseCode}</strong></td>
+                    <td>${r.courseTitle}</td>
+                    <td>${r.credit}</td>
+                    <td>${r.ca}</td>
+                    <td>${r.exam}</td>
+                    <td><strong>${r.total}</strong></td>
+                    <td><span class="grade-${r.grade}">${r.grade}</span></td>
+                    <td>${r.point}</td>
+                </tr>`;
+                totalPoints += r.point * r.credit;
+                totalCredits += r.credit;
+            });
+            const cgpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
+            html += `</tbody>} He
+            <div class="alert alert-info mt-3"><strong>CGPA: ${cgpa}</strong> | Total Credits: ${totalCredits}</div>
+            <button class="btn-primary" onclick="loadTranscript()"><i class="fas fa-file-pdf me-2"></i>Download Full Transcript</button>
+            <button class="btn-info" onclick="window.print()"><i class="fas fa-print me-2"></i>Print Results</button>
+            </div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        let currentPage = 1;
+        let itemsPerPage = 8;
+        
+        function renderCourses() {
+            const start = (currentPage - 1) * itemsPerPage;
+            const paginated = allCourses.slice(start, start + itemsPerPage);
+            const totalPages = Math.ceil(allCourses.length / itemsPerPage);
+            
+            let html = `<div class="data-card"><h5>Course Registration (${allCourses.length} courses available)</h5>
+                        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchCourseInput" class="form-control" placeholder="Search courses by code or title..."></div>
+                        <div class="courses-grid" id="coursesGrid">`;
+            
+            paginated.forEach(course => {
+                const isRegistered = registeredCourses.includes(course.code);
+                html += `
+                    <div class="course-item ${isRegistered ? 'selected' : ''}" onclick="toggleCourse('${course.code}')">
+                        <div class="course-code">${course.code}</div>
+                        <div class="course-title">${course.title}</div>
+                        <div class="course-credit">${course.credit} Credits | ${course.dept}</div>
+                        ${isRegistered ? '<span class="badge bg-success mt-2">✓ Registered</span>' : '<span class="badge bg-secondary mt-2">Available</span>'}
+                    </div>
+                `;
+            });
+            
+            html += `</div>
+                    <div class="pagination">
+                        <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
+                        <span>Page ${currentPage} of ${totalPages}</span>
+                        <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
+                    </div>
+                    <div class="mt-3">
+                        <strong>Registered: ${registeredCourses.length} courses</strong>
+                        <button class="btn-success float-end" onclick="submitRegistration()">Submit Registration</button>
+                        <button class="btn-danger float-end me-2" onclick="clearAllRegistration()">Clear All</button>
+                    </div>
+                </div>`;
+            document.getElementById('mainContent').innerHTML = html;
+            
+            document.getElementById('searchCourseInput').addEventListener('keyup', function() {
+                const term = this.value.toLowerCase();
+                const filtered = allCourses.filter(c => c.code.toLowerCase().includes(term) || c.title.toLowerCase().includes(term));
+                const filteredHtml = filtered.map(course => `
+                    <div class="course-item ${registeredCourses.includes(course.code) ? 'selected' : ''}" onclick="toggleCourse('${course.code}')">
+                        <div class="course-code">${course.code}</div>
+                        <div class="course-title">${course.title}</div>
+                        <div class="course-credit">${course.credit} Credits | ${course.dept}</div>
+                        ${registeredCourses.includes(course.code) ? '<span class="badge bg-success mt-2">Registered</span>' : '<span class="badge bg-secondary mt-2">Available</span>'}
+                    </div>
+                `).join('');
+                document.getElementById('coursesGrid').innerHTML = filteredHtml || '<div class="text-center">No courses found</div>';
+            });
+        }
+        
+        function loadCourses() {
+            currentPage = 1;
+            renderCourses();
+        }
+        
+        function changePage(newPage) {
+            if (newPage < 1 || newPage > Math.ceil(allCourses.length / itemsPerPage)) return;
+            currentPage = newPage;
+            renderCourses();
+        }
+        
+        function toggleCourse(courseCode) {
+            const index = registeredCourses.indexOf(courseCode);
+            if (index === -1) {
+                registeredCourses.push(courseCode);
+                showMessage(`${courseCode} added to registration`, 'success');
+            } else {
+                registeredCourses.splice(index, 1);
+                showMessage(`${courseCode} removed from registration`, 'warning');
+            }
+            localStorage.setItem('registeredCourses', JSON.stringify(registeredCourses));
+            renderCourses();
+        }
+        
+        function submitRegistration() {
+            showMessage(`${registeredCourses.length} courses registered successfully!`, 'success');
+            notifications.unshift({ id: Date.now(), title: "Registration Confirmed", message: `You have registered for ${registeredCourses.length} courses.`, date: new Date().toISOString(), read: false });
+            localStorage.setItem('student_notifications', JSON.stringify(notifications));
+        }
+        
+        function clearAllRegistration() {
+            if (confirm('Clear all registered courses?')) {
+                registeredCourses = [];
+                localStorage.setItem('registeredCourses', JSON.stringify(registeredCourses));
+                showMessage('All courses cleared', 'warning');
+                renderCourses();
+            }
+        }
+        
+        function loadTranscript() {
+            if (myResults.length === 0) {
+                document.getElementById('mainContent').innerHTML = `<div class="data-card"><h5>Transcript</h5><div class="alert alert-warning">No results published yet. Transcript will be available after results are published.</div></div>`;
+                return;
+            }
+            
+            let totalPoints = 0, totalCredits = 0;
+            let html = `<div class="data-card"><h5>Official Transcript</h5>
+                        <div id="transcriptContent">
+                            <div class="text-center"><h2>JPTS UNIVERSITY</h2><h4>Official Academic Transcript</h4><hr></div>
+                            <p><strong>Name:</strong> ${currentUser.name}</p>
+                            <p><strong>Matric Number:</strong> ${currentUser.id}</p>
+                            <p><strong>Department:</strong> ${currentUser.dept || 'Computer Science'}</p>
+                            <hr>
+                            <table class="table table-bordered">
+                                <thead class="table-dark"><tr><th>Course</th><th>Credit</th><th>Score</th><th>Grade</th><th>GP</th></tr></thead>
+                                <tbody>`;
+            
+            myResults.forEach(r => {
+                html += `<tr><td class="text-center">${r.courseCode} - ${r.courseTitle}</p></div><td class="text-center">${r.credit}</p></div><td class="text-center">${r.total}</p></div><td class="text-center">${r.grade}</p></div><td class="text-center">${r.point}</p></div></tr>`;
+                totalPoints += r.point * r.credit;
+                totalCredits += r.credit;
+            });
+            const cgpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
+            html += `</tbody></table><div class="alert alert-info mt-3"><strong>CGPA: ${cgpa}</strong></div>
+                    <div class="text-center mt-4"><p>Generated on ${new Date().toLocaleDateString()}</p></div>
+                    </div>
+                    <button class="btn-danger mt-3" onclick="alert('PDF Transcript would download here')">Download PDF Transcript</button>
+                    </div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        function loadProfile() {
+            document.getElementById('mainContent').innerHTML = `
+                <div class="data-card">
+                    <h5>My Profile</h5>
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div style="width:120px;height:120px;background:#0a1e3c;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;color:white;font-size:48px"><i class="fas fa-user-graduate"></i></div>
+                        </div>
+                        <div class="col-md-8">
+                            <table class="table">
+                                <tr><th>Full Name</th><td>${currentUser.name}</p></div>
+                                <tr><th>Matric Number</th><td>${currentUser.id}</p></div>
+                                <tr><th>Email</th><td>${currentUser.email}</p></div>
+                                <tr><th>Department</th><td>${currentUser.dept || 'Not set'}</p></div>
+                                <tr><th>Role</th><td>${currentUser.role}</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function loadNotifications() {
+            let html = `<div class="data-card"><h5>Notifications</h5><div id="notificationsList">`;
+            if (notifications.length === 0) {
+                html += '<div class="text-center py-3 text-muted">No notifications</div>';
+            } else {
+                notifications.slice().reverse().forEach(notif => {
+                    html += `<div class="notification-item" style="padding:12px;border-bottom:1px solid #eee">
+                                <div><strong>${notif.title}</strong> <small class="text-muted float-end">${new Date(notif.date).toLocaleDateString()}</small></div>
+                                <div>${notif.message}</div>
+                            </div>`;
+                });
+            }
+            html += `</div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        });
+        
+        loadDashboard();
+    </script>
+</body>
+</html>

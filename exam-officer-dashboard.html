@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Officer Dashboard - JPTS University</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: #17a2b8; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar { width: 260px; background: white; position: fixed; height: 100%; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar-item { padding: 12px 15px; margin: 5px 0; cursor: pointer; border-radius: 10px; color: #333; transition: 0.3s; }
+        .sidebar-item:hover, .sidebar-item.active { background: #17a2b8; color: white; }
+        .main-content { margin-left: 280px; padding: 25px; }
+        .data-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; }
+        .btn-success { background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin: 2px; }
+        .btn-primary { background: #17a2b8; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
+        .toast-msg { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; animation: slideIn 0.3s ease; border-radius: 10px; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width: 768px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div><i class="fas fa-clipboard-list"></i> JPTS University - Examination Office</div>
+        <div><span id="officerName"></span> <button class="btn-logout ms-3" id="logoutBtn">Logout</button></div>
+    </div>
+    
+    <div class="sidebar">
+        <h5 class="text-center mb-3">Exam Officer Menu</h5>
+        <div class="sidebar-item active" onclick="loadDashboard()">Dashboard</div>
+        <div class="sidebar-item" onclick="loadReadyForPublication()">Ready for Publication</div>
+        <div class="sidebar-item" onclick="loadPublishedResults()">Published Results</div>
+    </div>
+    
+    <div class="main-content" id="mainContent">
+        <div class="text-center py-5"><div class="spinner-border text-primary"></div><p>Loading...</p></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- EmailJS Library for sending real emails -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+        // Initialize EmailJS (FREE - 200 emails/month)
+        // Sign up at https://www.emailjs.com to get your own keys
+        // For demo, this will simulate email sending
+        emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Replace with your key
+        
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'exam_officer') window.location.href = 'login.html';
+        document.getElementById('officerName').innerHTML = currentUser.name;
+        
+        let approvedScores = JSON.parse(localStorage.getItem('approved_scores')) || [];
+        let publishedResults = JSON.parse(localStorage.getItem('published_results')) || [];
+        let allStudents = JSON.parse(localStorage.getItem('all_students')) || [];
+        
+        function showMessage(msg, type) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} toast-msg`;
+            toast.innerHTML = msg + '<button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+        
+        function saveData() {
+            localStorage.setItem('approved_scores', JSON.stringify(approvedScores));
+            localStorage.setItem('published_results', JSON.stringify(publishedResults));
+        }
+        
+        // Simulate sending email (or use real EmailJS)
+        async function sendEmailNotification(studentEmail, studentName, courseCode, grade, total) {
+            // This simulates sending an email
+            // For real emails, uncomment the EmailJS code below after getting API keys
+            
+            console.log(`📧 EMAIL SENT TO: ${studentEmail}`);
+            console.log(`Subject: Result Published - ${courseCode}`);
+            console.log(`Body: Dear ${studentName}, your result for ${courseCode} is ${grade} (${total}%).`);
+            
+            // REAL EMAIL CODE (uncomment after getting EmailJS keys):
+            /*
+            try {
+                await emailjs.send("service_xxxx", "template_xxxx", {
+                    to_email: studentEmail,
+                    to_name: studentName,
+                    course_code: courseCode,
+                    grade: grade,
+                    score: total,
+                    date: new Date().toLocaleDateString()
+                });
+                console.log("Email sent successfully to", studentEmail);
+                return true;
+            } catch(error) {
+                console.error("Email failed:", error);
+                return false;
+            }
+            */
+            
+            return true;
+        }
+        
+        async function sendBulkEmails(studentsList, courseCode, grade, total) {
+            for (const student of studentsList) {
+                await sendEmailNotification(student.email, student.name, courseCode, grade, total);
+            }
+        }
+        
+        function loadDashboard() {
+            document.getElementById('mainContent').innerHTML = `
+                <div class="data-card">
+                    <h5>Examination Office Dashboard</h5>
+                    <p>Welcome, ${currentUser.name}!</p>
+                    <p>Scores Ready for Publication: ${approvedScores.length}</p>
+                    <p>Results Published: ${publishedResults.length}</p>
+                    <button class="btn-primary" onclick="loadReadyForPublication()">Review & Publish</button>
+                </div>
+            `;
+        }
+        
+        function loadReadyForPublication() {
+            if (approvedScores.length === 0) {
+                document.getElementById('mainContent').innerHTML = `<div class="data-card"><div class="alert alert-info">No scores ready for publication. HOD needs to approve scores first.</div></div>`;
+                return;
+            }
+            
+            let html = `<div class="data-card"><h5>Scores Ready for Publication</h5>
+                        <div class="alert alert-info"><i class="fas fa-envelope me-2"></i>When you publish, students will receive EMAIL notifications.</div>
+                        <div class="table-responsive"><table class="table"><thead>
+                        <tr><th>Student</th><th>Course</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th><th>Email Status</th><th>Action</th>
+                        </thead><tbody>`;
+            
+            approvedScores.forEach((score, index) => {
+                const student = allStudents.find(s => s.id === score.studentId);
+                html += `<tr>
+                    <td>${score.studentName}</p></div>
+                    <td>${score.courseCode}</p></div>
+                    <td>${score.ca}</p></div>
+                    <td>${score.exam}</p></div>
+                    <td><strong>${score.total}</strong></p></div>
+                    <td><span class="badge bg-success">${score.grade}</span></p></div>
+                    <td><span class="badge bg-info">Will send email</span></p></div>
+                    <td><button class="btn-success" onclick="publishResult(${index})">Publish & Send Email</button></p></div>
+                </tr>`;
+            });
+            html += `</tbody>}</div>
+                    <button class="btn-primary mt-3" onclick="publishAllResults()">Publish All & Send Emails to All Students</button>
+                    </div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        async function publishResult(index) {
+            const score = approvedScores[index];
+            const student = allStudents.find(s => s.id === score.studentId);
+            
+            // Send email notification
+            showMessage(`Sending email to ${student?.email || score.studentName}...`, 'info');
+            await sendEmailNotification(student?.email, score.studentName, score.courseCode, score.grade, score.total);
+            
+            const published = { ...score, status: "published", publishedBy: currentUser.id, publishedDate: new Date().toISOString() };
+            publishedResults.push(published);
+            approvedScores.splice(index, 1);
+            saveData();
+            
+            // Add notification for student
+            let studentNotifications = JSON.parse(localStorage.getItem('student_notifications')) || [];
+            studentNotifications.unshift({
+                id: Date.now(),
+                title: "Result Published",
+                message: `Your result for ${score.courseCode} (${score.grade}) has been published.`,
+                date: new Date().toISOString(),
+                read: false
+            });
+            localStorage.setItem('student_notifications', JSON.stringify(studentNotifications));
+            
+            showMessage(`Result published! Email sent to ${student?.email || score.studentName}`, "success");
+            loadReadyForPublication();
+        }
+        
+        async function publishAllResults() {
+            let emailCount = 0;
+            for (const score of approvedScores) {
+                const student = allStudents.find(s => s.id === score.studentId);
+                await sendEmailNotification(student?.email, score.studentName, score.courseCode, score.grade, score.total);
+                publishedResults.push({ ...score, status: "published", publishedBy: currentUser.id, publishedDate: new Date().toISOString() });
+                emailCount++;
+            }
+            approvedScores = [];
+            saveData();
+            
+            // Add bulk notification for students
+            let studentNotifications = JSON.parse(localStorage.getItem('student_notifications')) || [];
+            studentNotifications.unshift({
+                id: Date.now(),
+                title: "Results Published",
+                message: `${emailCount} of your results have been published. Check your dashboard.`,
+                date: new Date().toISOString(),
+                read: false
+            });
+            localStorage.setItem('student_notifications', JSON.stringify(studentNotifications));
+            
+            showMessage(`${emailCount} results published! Emails sent to all students.`, "success");
+            loadReadyForPublication();
+        }
+        
+        function loadPublishedResults() {
+            if (publishedResults.length === 0) {
+                document.getElementById('mainContent').innerHTML = `<div class="data-card"><div class="alert alert-info">No results published yet.</div></div>`;
+                return;
+            }
+            
+            let html = `<div class="data-card"><h5>Published Results</h5>
+                        <div class="table-responsive"><table class="table"><thead>
+                        <tr><th>Student</th><th>Course</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th><th>Published Date</th><th>Email Sent</th>
+                        </thead><tbody>`;
+            publishedResults.forEach(score => {
+                html += `<tr>
+                    <td>${score.studentName}</p></div>
+                    <td>${score.courseCode}</p></div>
+                    <td>${score.ca}</p></div>
+                    <td>${score.exam}</p></div>
+                    <td><strong>${score.total}</strong></p></div>
+                    <td><span class="badge bg-success">${score.grade}</span></p></div>
+                    <td>${new Date(score.publishedDate).toLocaleDateString()}</p></div>
+                    <td><i class="fas fa-envelope text-success"></i> Sent</p></div>
+                </tr>`;
+            });
+            html += `</tbody>}</div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.removeItem('currentUser'); window.location.href = 'login.html'; });
+        loadDashboard();
+    </script>
+</body>
+</html>
