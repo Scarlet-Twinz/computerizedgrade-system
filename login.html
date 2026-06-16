@@ -1,100 +1,231 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - JPTS Institute</title>
+    <title>JPTS University - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: linear-gradient(135deg, #0a1e3c, #1a3a6c);
+            background: linear-gradient(135deg, #0a1e3c 0%, #1a3a6c 50%, #0c1445 100%);
             min-height: 100vh;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Poppins', sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .login-card {
             background: white;
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 40px;
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
             margin: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
         }
-        .login-header { text-align: center; margin-bottom: 30px; }
-        .login-header i { font-size: 60px; color: #0a1e3c; }
-        .login-header h2 { margin-top: 10px; }
-        .form-control, .form-select {
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 15px;
-            width: 100%;
-            border: 1px solid #ddd;
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #c49a2c, #ffd700, #c49a2c);
+        }
+        .login-header { text-align: center; margin-bottom: 25px; }
+        .login-header i {
+            font-size: 50px;
+            color: #0a1e3c;
+            background: #f0f2f5;
+            padding: 15px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+        .login-header h2 {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0a1e3c;
+            margin: 5px 0;
+        }
+        .login-header .subtitle {
+            color: #666;
+            font-size: 14px;
+            font-weight: 300;
+        }
+        .login-header .badge {
+            background: #c49a2c;
+            color: #0a1e3c;
+            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .form-control {
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border: 2px solid #e8ecf1;
+            transition: 0.3s;
+            font-size: 14px;
+        }
+        .form-control:focus {
+            border-color: #0a1e3c;
+            box-shadow: 0 0 0 3px rgba(10, 30, 60, 0.1);
         }
         .btn-login {
-            background: #0a1e3c;
+            background: linear-gradient(135deg, #0a1e3c, #1a3a6c);
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 14px;
+            border-radius: 12px;
             width: 100%;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 16px;
             cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(10, 30, 60, 0.3);
+        }
+        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-login-outline {
+            background: transparent;
+            color: #0a1e3c;
+            border: 2px solid #0a1e3c;
+            padding: 12px;
+            border-radius: 12px;
+            width: 100%;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-login-outline:hover {
+            background: #0a1e3c;
+            color: white;
+        }
+        .nav-tabs { border: none; margin-bottom: 20px; }
+        .nav-tabs .nav-link {
+            color: #666;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            padding: 10px 0;
+            margin: 0;
+            text-align: center;
+            font-size: 15px;
+            border-bottom: 3px solid transparent;
+            background: transparent;
         }
         .nav-tabs .nav-link.active {
             color: #0a1e3c;
-            border-bottom: 3px solid #0a1e3c;
-            font-weight: bold;
+            border-bottom: 3px solid #c49a2c;
+            font-weight: 600;
+            background: transparent;
+        }
+        .nav-tabs .nav-link:hover {
+            color: #0a1e3c;
+            border-bottom: 3px solid #c49a2c;
         }
         .role-selector {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 8px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            margin-bottom: 18px;
         }
         .role-card {
-            flex: 1;
             text-align: center;
             padding: 10px 5px;
             border-radius: 10px;
             cursor: pointer;
-            border: 2px solid #e0e0e0;
+            border: 2px solid #e8ecf1;
             background: white;
             transition: 0.3s;
+            font-size: 12px;
+            font-weight: 500;
         }
-        .role-card i { font-size: 20px; margin-bottom: 5px; display: block; }
-        .role-card span { font-size: 12px; }
-        .role-card:hover { transform: translateY(-3px); border-color: #c49a2c; }
-        .role-card.selected {
-            border-color: #0a1e3c;
-            background: #0a1e3c;
-            color: white;
-        }
+        .role-card:hover { border-color: #0a1e3c; background: #f8f9fa; }
+        .role-card.selected { border-color: #c49a2c; background: #0a1e3c; color: white; }
+        .role-card i { display: block; font-size: 18px; margin-bottom: 4px; }
         .toast-msg {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 9999;
-            min-width: 300px;
-            animation: slideIn 0.3s ease;
-            border-radius: 10px;
+            min-width: 320px;
+            animation: slideIn 0.4s ease;
+            background: white;
+            border-radius: 12px;
+            padding: 18px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-left: 5px solid;
         }
+        .toast-msg.alert-success { border-left-color: #28a745; }
+        .toast-msg.alert-danger { border-left-color: #dc3545; }
+        .toast-msg.alert-warning { border-left-color: #ffc107; }
+        .toast-msg.alert-info { border-left-color: #17a2b8; }
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        .forgot-link { text-align: center; margin-top: 15px; }
-        .forgot-link a { color: #888; font-size: 13px; text-decoration: none; cursor: pointer; }
-        .modal-content { border-radius: 15px; }
-        @media (max-width: 768px) {
-            .role-card i { font-size: 16px; }
-            .role-card span { font-size: 10px; }
-            .login-card { padding: 25px; }
+        .forgot-link { text-align: right; margin-bottom: 12px; }
+        .forgot-link a {
+            color: #c49a2c;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .forgot-link a:hover { text-decoration: underline; }
+        .spinner { display: none; text-align: center; margin: 10px 0; }
+        .spinner.active { display: block; }
+        .spinner i { font-size: 28px; color: #c49a2c; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e8ecf1;
+        }
+        .divider span {
+            padding: 0 15px;
+            color: #999;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .school-badge {
+            display: inline-block;
+            background: #f0f2f5;
+            padding: 4px 15px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            margin-top: 5px;
+        }
+        .security-question {
+            display: none;
+            margin-top: 10px;
+        }
+        .security-question.show {
+            display: block;
+        }
+        @media (max-width: 480px) {
+            .login-card { padding: 30px 20px; }
+            .role-selector { grid-template-columns: repeat(3, 1fr); }
+            .role-card { font-size: 10px; padding: 8px 4px; }
+            .role-card i { font-size: 14px; }
         }
     </style>
 </head>
@@ -102,99 +233,179 @@
 <div class="login-card">
     <div class="login-header">
         <i class="fas fa-graduation-cap"></i>
-        <h2>JPTS Institute</h2>
-        <p>Grade Evaluation System</p>
+        <h2>JPTS University</h2>
+        <p class="subtitle">Result Management System</p>
+        <span class="school-badge"><i class="fas fa-check-circle" style="color: #28a745;"></i> Accredited by NUC</span>
     </div>
     
-    <ul class="nav nav-tabs mb-4" id="authTab">
-        <li class="nav-item w-50"><a class="nav-link active" data-bs-toggle="tab" href="#loginTab">Login</a></li>
-        <li class="nav-item w-50"><a class="nav-link" data-bs-toggle="tab" href="#signupTab">Sign Up</a></li>
+    <ul class="nav nav-tabs mb-3" id="authTab" role="tablist">
+        <li class="nav-item w-50" role="presentation">
+            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab"><i class="fas fa-sign-in-alt me-2"></i>Login</button>
+        </li>
+        <li class="nav-item w-50" role="presentation">
+            <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup" type="button" role="tab"><i class="fas fa-user-plus me-2"></i>Sign Up</button>
+        </li>
     </ul>
     
     <div class="tab-content">
-        <!-- LOGIN TAB -->
-        <div class="tab-pane fade show active" id="loginTab">
+        <!-- ==================== LOGIN TAB ==================== -->
+        <div class="tab-pane fade show active" id="login" role="tabpanel">
             <div class="role-selector" id="loginRoleSelector">
-                <div class="role-card" data-role="student"><i class="fas fa-user-graduate"></i><span>Student</span></div>
-                <div class="role-card" data-role="lecturer"><i class="fas fa-chalkboard-user"></i><span>Lecturer</span></div>
-                <div class="role-card" data-role="hod"><i class="fas fa-building"></i><span>HOD</span></div>
-                <div class="role-card" data-role="exam_officer"><i class="fas fa-clipboard-list"></i><span>Exam Officer</span></div>
-                <div class="role-card" data-role="admin"><i class="fas fa-user-shield"></i><span>Admin</span></div>
+                <div class="role-card selected" data-role="student">
+                    <i class="fas fa-user-graduate"></i>Student
+                </div>
+                <div class="role-card" data-role="lecturer">
+                    <i class="fas fa-chalkboard-teacher"></i>Lecturer
+                </div>
+                <div class="role-card" data-role="hod">
+                    <i class="fas fa-user-tie"></i>HOD
+                </div>
+                <div class="role-card" data-role="exam_officer">
+                    <i class="fas fa-clipboard-list"></i>Exam Officer
+                </div>
+                <div class="role-card" data-role="admin">
+                    <i class="fas fa-user-cog"></i>Admin
+                </div>
             </div>
             <form id="loginForm">
-                <input type="text" id="loginEmail" class="form-control" placeholder="Email or Matric Number" required>
+                <input type="text" id="loginEmail" class="form-control" placeholder="Email Address or Matric/Staff Number" required>
                 <input type="password" id="loginPassword" class="form-control" placeholder="Password" required>
-                <button type="submit" class="btn-login">Login</button>
-                <div class="forgot-link"><a id="forgotPasswordBtn">Forgot Password?</a></div>
+                <div class="forgot-link">
+                    <a id="forgotPasswordLink"><i class="fas fa-key me-1"></i>Forgot Password?</a>
+                </div>
+                <div class="spinner" id="loginSpinner"><i class="fas fa-spinner"></i> Logging in...</div>
+                <button type="submit" class="btn-login" id="loginBtn"><i class="fas fa-sign-in-alt me-2"></i>Login</button>
             </form>
+            
+            <!-- Forgot Password Section -->
+            <div id="forgotPasswordSection" style="display: none; margin-top: 20px;">
+                <h6 class="text-center mb-3"><i class="fas fa-key me-2"></i>Reset Password</h6>
+                <p class="text-muted text-center small">Answer your security question to reset your password</p>
+                <div id="securityQuestionDisplay" class="alert alert-info text-center" style="font-weight: 500;"></div>
+                <input type="text" id="securityAnswerInput" class="form-control" placeholder="Your answer">
+                <input type="password" id="newPasswordInput" class="form-control" placeholder="New Password (min 6 chars)">
+                <input type="password" id="confirmNewPasswordInput" class="form-control" placeholder="Confirm New Password">
+                <button class="btn-login" id="resetPasswordBtn" style="background: #c49a2c; color: #0a1e3c; margin-top: 10px;">
+                    <i class="fas fa-save me-2"></i>Reset Password
+                </button>
+                <button class="btn-login-outline mt-2" id="cancelResetBtn" style="padding: 8px;">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Login
+                </button>
+            </div>
         </div>
         
-        <!-- SIGNUP TAB -->
-        <div class="tab-pane fade" id="signupTab">
+        <!-- ==================== SIGNUP TAB ==================== -->
+        <div class="tab-pane fade" id="signup" role="tabpanel">
             <form id="signupForm">
                 <input type="text" id="signupName" class="form-control" placeholder="Full Name" required>
                 <input type="email" id="signupEmail" class="form-control" placeholder="Email Address" required>
-                <input type="text" id="signupNumber" class="form-control" placeholder="Matric/Staff Number" required>
-                <select id="signupRole" class="form-select" required>
+                <input type="text" id="signupNumber" class="form-control" placeholder="Matric/Staff Number (e.g. STU001, LEC001)" required>
+                
+                <select id="signupRole" class="form-control">
                     <option value="student">Student</option>
                     <option value="lecturer">Lecturer</option>
                     <option value="hod">Head of Department</option>
                     <option value="exam_officer">Examination Officer</option>
                     <option value="admin">Administrator</option>
                 </select>
-                <select id="signupDept" class="form-select" required>
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Engineering">Engineering</option>
-                    <option value="Business">Business Administration</option>
-                    <option value="Accounting">Accounting</option>
-                    <option value="Law">Law</option>
-                    <option value="Economics">Economics</option>
+                
+                <select id="signupDept" class="form-control">
+                    <option value="">Select Department...</option>
+                    <optgroup label="🔬 SCIENCES">
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Software Engineering">Software Engineering</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Cyber Security">Cyber Security</option>
+                        <option value="Data Science">Data Science</option>
+                        <option value="Artificial Intelligence">Artificial Intelligence</option>
+                        <option value="Mathematics">Mathematics</option>
+                        <option value="Statistics">Statistics</option>
+                        <option value="Physics">Physics</option>
+                        <option value="Chemistry">Chemistry</option>
+                        <option value="Biology">Biology</option>
+                        <option value="Biochemistry">Biochemistry</option>
+                        <option value="Microbiology">Microbiology</option>
+                    </optgroup>
+                    <optgroup label="⚙️ ENGINEERING">
+                        <option value="Mechanical Engineering">Mechanical Engineering</option>
+                        <option value="Electrical Engineering">Electrical Engineering</option>
+                        <option value="Civil Engineering">Civil Engineering</option>
+                        <option value="Chemical Engineering">Chemical Engineering</option>
+                        <option value="Petroleum Engineering">Petroleum Engineering</option>
+                        <option value="Computer Engineering">Computer Engineering</option>
+                    </optgroup>
+                    <optgroup label="💰 BUSINESS">
+                        <option value="Business Administration">Business Administration</option>
+                        <option value="Accounting">Accounting</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Entrepreneurship">Entrepreneurship</option>
+                    </optgroup>
+                    <optgroup label="⚖️ SOCIAL SCIENCES">
+                        <option value="Economics">Economics</option>
+                        <option value="Political Science">Political Science</option>
+                        <option value="Sociology">Sociology</option>
+                        <option value="Psychology">Psychology</option>
+                    </optgroup>
+                    <optgroup label="📚 ARTS">
+                        <option value="Mass Communication">Mass Communication</option>
+                        <option value="English">English</option>
+                        <option value="Literature">Literature</option>
+                    </optgroup>
+                    <optgroup label="⚖️ LAW">
+                        <option value="Law">Law</option>
+                    </optgroup>
+                    <optgroup label="⚕️ HEALTH">
+                        <option value="Nursing">Nursing</option>
+                        <option value="Public Health">Public Health</option>
+                    </optgroup>
                 </select>
+                
                 <input type="password" id="signupPassword" class="form-control" placeholder="Password (min 6 chars)" required>
                 <input type="password" id="signupConfirm" class="form-control" placeholder="Confirm Password" required>
-                <button type="submit" class="btn-login">Create Account</button>
+                
+                <div class="alert alert-info mt-2" style="font-size: 13px;">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    <strong>Security Question:</strong> Choose a question and answer for password recovery
+                </div>
+                
+                <select id="securityQuestion" class="form-control">
+                    <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                    <option value="What is your pet's name?">What is your pet's name?</option>
+                    <option value="What is your favorite food?">What is your favorite food?</option>
+                    <option value="What city were you born in?">What city were you born in?</option>
+                    <option value="What is your best friend's name?">What is your best friend's name?</option>
+                </select>
+                
+                <input type="text" id="securityAnswer" class="form-control" placeholder="Your answer to the security question" required>
+                
+                <div class="spinner" id="signupSpinner"><i class="fas fa-spinner"></i> Creating account...</div>
+                <button type="submit" class="btn-login" id="signupBtn"><i class="fas fa-user-plus me-2"></i>Create Account</button>
+                <div class="divider"><span>OR</span></div>
+                <button type="button" class="btn-login-outline" onclick="document.getElementById('login-tab').click();">
+                    <i class="fas fa-sign-in-alt me-2"></i>Already have an account? Login
+                </button>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Forgot Password Modal -->
-<div class="modal fade" id="forgotModal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header" style="background:#0a1e3c;color:white">
-                <h5 class="modal-title">Reset Password</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Enter your email address and we'll send you a password reset link.</p>
-                <input type="email" id="resetEmail" class="form-control" placeholder="Your email address">
-                <div id="resetMessage" class="mt-2"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="sendResetBtn" style="background:#0a1e3c;">Send Reset Link</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    // Users database (localStorage)
-    let users = JSON.parse(localStorage.getItem('jpts_users')) || [
-        { name: "Admin User", email: "admin@jpts.edu", password: "admin123", id: "ADMIN001", role: "admin", dept: "Admin" },
-        { name: "Student User", email: "student@jpts.edu", password: "student123", id: "STU001", role: "student", dept: "Computer Science" },
-        { name: "Lecturer User", email: "lecturer@jpts.edu", password: "lecturer123", id: "LEC001", role: "lecturer", dept: "Computer Science" },
-        { name: "HOD User", email: "hod@jpts.edu", password: "hod123", id: "HOD001", role: "hod", dept: "Computer Science" },
-        { name: "Exam Officer", email: "exam@jpts.edu", password: "exam123", id: "EXAM001", role: "exam_officer", dept: "Registry" }
-    ];
+    // ============================================================
+    // 🔥 LOCAL STORAGE ONLY — NO FIREBASE!
+    // ============================================================
     
-    function saveUsers() { localStorage.setItem('jpts_users', JSON.stringify(users)); }
-    saveUsers();
-    
+    let users = JSON.parse(localStorage.getItem('jpts_users')) || [];
     let selectedRole = "student";
+    let resettingUser = null;
+
+    function saveUsers() {
+        localStorage.setItem('jpts_users', JSON.stringify(users));
+    }
+
+    // Role selector
     document.querySelectorAll('#loginRoleSelector .role-card').forEach(card => {
         card.addEventListener('click', function() {
             document.querySelectorAll('#loginRoleSelector .role-card').forEach(c => c.classList.remove('selected'));
@@ -202,91 +413,256 @@
             selectedRole = this.getAttribute('data-role');
         });
     });
-    document.querySelector('#loginRoleSelector .role-card[data-role="student"]').classList.add('selected');
-    
+
     function showMessage(msg, type) {
         const toast = document.createElement('div');
         toast.className = `alert alert-${type} toast-msg`;
         toast.innerHTML = msg + '<button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>';
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+        setTimeout(() => toast.remove(), 5000);
     }
-    
-    // LOGIN
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const loginInput = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        const user = users.find(u => (u.email === loginInput || u.id === loginInput) && u.role === selectedRole);
-        
-        if (!user) { showMessage(`No ${selectedRole} account found!`, 'danger'); return; }
-        if (user.password !== password) { showMessage('Incorrect password!', 'danger'); return; }
-        
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        showMessage(`Welcome ${user.name}! Redirecting...`, 'success');
-        
-        setTimeout(() => {
-            if (user.role === 'admin') window.location.href = 'admin-dashboard.html';
-            else if (user.role === 'lecturer') window.location.href = 'lecturer-dashboard.html';
-            else if (user.role === 'hod') window.location.href = 'hod-dashboard.html';
-            else if (user.role === 'exam_officer') window.location.href = 'exam-officer-dashboard.html';
-            else window.location.href = 'student-dashboard.html';
-        }, 1500);
-    });
-    
-    // SIGNUP
+
+    // ============================================================
+    // 📝 SIGNUP
+    // ============================================================
     document.getElementById('signupForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const name = document.getElementById('signupName').value;
-        const email = document.getElementById('signupEmail').value;
-        const id = document.getElementById('signupNumber').value;
+        
+        const name = document.getElementById('signupName').value.trim();
+        const email = document.getElementById('signupEmail').value.trim();
+        const id = document.getElementById('signupNumber').value.trim().toUpperCase();
         const role = document.getElementById('signupRole').value;
         const dept = document.getElementById('signupDept').value;
         const password = document.getElementById('signupPassword').value;
         const confirm = document.getElementById('signupConfirm').value;
+        const securityQuestion = document.getElementById('securityQuestion').value;
+        const securityAnswer = document.getElementById('securityAnswer').value.trim().toLowerCase();
         
-        if (password !== confirm) { showMessage('Passwords do not match!', 'danger'); return; }
-        if (users.find(u => u.email === email)) { showMessage('Email already registered!', 'danger'); return; }
-        if (users.find(u => u.id === id)) { showMessage('ID already exists!', 'danger'); return; }
-        
-        users.push({ name, email, password, id, role, dept });
-        saveUsers();
-        showMessage('Account created! Please login.', 'success');
-        document.getElementById('signupForm').reset();
-        document.querySelector('a[href="#loginTab"]').click();
-    });
-    
-    // FORGOT PASSWORD - Simulates sending email
-    document.getElementById('forgotPasswordBtn').onclick = () => $('#forgotModal').modal('show');
-    
-    document.getElementById('sendResetBtn').onclick = function() {
-        const email = document.getElementById('resetEmail').value;
-        const user = users.find(u => u.email === email);
-        
-        if (!user) {
-            document.getElementById('resetMessage').innerHTML = '<div class="alert alert-danger">Email not found!</div>';
-            setTimeout(() => document.getElementById('resetMessage').innerHTML = '', 3000);
+        if (!name || !email || !id || !password || !confirm || !securityAnswer) {
+            showMessage('⚠️ Please fill in all fields!', 'danger');
             return;
         }
         
-        // Generate a random temporary password
-        const tempPassword = Math.random().toString(36).slice(-8);
-        user.password = tempPassword;
+        if (password !== confirm) {
+            showMessage('⚠️ Passwords do not match!', 'danger');
+            return;
+        }
+        
+        if (password.length < 6) {
+            showMessage('⚠️ Password must be at least 6 characters', 'danger');
+            return;
+        }
+        
+        if (!dept) {
+            showMessage('⚠️ Please select your department!', 'danger');
+            return;
+        }
+        
+        if (users.find(u => u.email === email && u.role === role)) {
+            showMessage(`❌ This email is already registered as ${role}!`, 'danger');
+            return;
+        }
+        
+        if (users.find(u => u.id === id)) {
+            showMessage('❌ ID already exists! Please use a different ID.', 'danger');
+            return;
+        }
+        
+        document.getElementById('signupSpinner').classList.add('active');
+        document.getElementById('signupBtn').disabled = true;
+        
+        // ✅ Save to localStorage
+        const newUser = { 
+            name, 
+            email, 
+            id, 
+            role, 
+            dept, 
+            password,
+            securityQuestion,
+            securityAnswer,
+            created: new Date().toISOString(),
+            verified: true
+        };
+        users.push(newUser);
         saveUsers();
         
-        document.getElementById('resetMessage').innerHTML = `
-            <div class="alert alert-success">
-                <strong>Password Reset!</strong><br>
-                Your temporary password is: <strong>${tempPassword}</strong><br>
-                Please use this to login and change your password.
-            </div>
-        `;
+        document.getElementById('signupSpinner').classList.remove('active');
+        document.getElementById('signupBtn').disabled = false;
+        
+        showMessage(`✅ ${role.charAt(0).toUpperCase() + role.slice(1)} account created successfully! Your ID: ${id}`, 'success');
+        document.getElementById('signupForm').reset();
         
         setTimeout(() => {
-            $('#forgotModal').modal('hide');
-            document.getElementById('resetEmail').value = '';
-            document.getElementById('resetMessage').innerHTML = '';
-        }, 5000);
+            document.getElementById('login-tab').click();
+            showMessage(`✅ You can now login as ${role}!`, 'info');
+        }, 1500);
+    });
+
+    // ============================================================
+    // 🔐 LOGIN
+    // ============================================================
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const loginInput = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+        
+        if (!loginInput || !password) {
+            showMessage('⚠️ Please enter both email/ID and password!', 'danger');
+            return;
+        }
+        
+        document.getElementById('loginSpinner').classList.add('active');
+        document.getElementById('loginBtn').disabled = true;
+        
+        const user = users.find(u => 
+            (u.email === loginInput || u.id === loginInput) && 
+            u.role === selectedRole
+        );
+        
+        if (!user) {
+            document.getElementById('loginSpinner').classList.remove('active');
+            document.getElementById('loginBtn').disabled = false;
+            showMessage(`❌ No ${selectedRole} account found with these credentials!`, 'danger');
+            return;
+        }
+        
+        if (user.password !== password) {
+            document.getElementById('loginSpinner').classList.remove('active');
+            document.getElementById('loginBtn').disabled = false;
+            showMessage('❌ Incorrect password!', 'danger');
+            return;
+        }
+        
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        
+        document.getElementById('loginSpinner').classList.remove('active');
+        document.getElementById('loginBtn').disabled = false;
+        
+        showMessage(`✅ Welcome ${user.name} (${user.role})!`, 'success');
+        
+        setTimeout(() => {
+            const roleMap = {
+                'admin': 'admin-dashboard.html',
+                'lecturer': 'lecturer-dashboard.html',
+                'hod': 'hod-dashboard.html',
+                'exam_officer': 'exam-officer-dashboard.html',
+                'student': 'student-dashboard.html'
+            };
+            window.location.href = roleMap[user.role] || 'student-dashboard.html';
+        }, 1500);
+    });
+
+    // ============================================================
+    // 🔑 FORGOT PASSWORD (Security Question Based)
+    // ============================================================
+    document.getElementById('forgotPasswordLink').addEventListener('click', function() {
+        const loginInput = document.getElementById('loginEmail').value.trim();
+        
+        if (!loginInput) {
+            showMessage('⚠️ Please enter your email or ID first!', 'warning');
+            return;
+        }
+        
+        const user = users.find(u => u.email === loginInput || u.id === loginInput);
+        
+        if (!user) {
+            showMessage('❌ No account found with these credentials!', 'danger');
+            return;
+        }
+        
+        resettingUser = user;
+        
+        // Show forgot password section
+        document.getElementById('forgotPasswordSection').style.display = 'block';
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('securityQuestionDisplay').textContent = user.securityQuestion || 'What is your mother\'s maiden name?';
+        document.getElementById('securityAnswerInput').value = '';
+        document.getElementById('newPasswordInput').value = '';
+        document.getElementById('confirmNewPasswordInput').value = '';
+    });
+
+    // Reset Password
+    document.getElementById('resetPasswordBtn').addEventListener('click', function() {
+        const answer = document.getElementById('securityAnswerInput').value.trim().toLowerCase();
+        const newPassword = document.getElementById('newPasswordInput').value;
+        const confirmNewPassword = document.getElementById('confirmNewPasswordInput').value;
+        
+        if (!answer) {
+            showMessage('⚠️ Please answer your security question!', 'danger');
+            return;
+        }
+        
+        if (!newPassword || !confirmNewPassword) {
+            showMessage('⚠️ Please enter and confirm your new password!', 'danger');
+            return;
+        }
+        
+        if (newPassword !== confirmNewPassword) {
+            showMessage('⚠️ Passwords do not match!', 'danger');
+            return;
+        }
+        
+        if (newPassword.length < 6) {
+            showMessage('⚠️ Password must be at least 6 characters!', 'danger');
+            return;
+        }
+        
+        if (answer !== resettingUser.securityAnswer) {
+            showMessage('❌ Incorrect security answer!', 'danger');
+            return;
+        }
+        
+        // Update password
+        const userIndex = users.findIndex(u => u.id === resettingUser.id && u.role === resettingUser.role);
+        if (userIndex !== -1) {
+            users[userIndex].password = newPassword;
+            saveUsers();
+            showMessage('✅ Password reset successfully! You can now login.', 'success');
+            
+            // Reset form
+            document.getElementById('forgotPasswordSection').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('loginEmail').value = resettingUser.email;
+            document.getElementById('loginPassword').value = '';
+            resettingUser = null;
+        }
+    });
+
+    // Cancel Reset
+    document.getElementById('cancelResetBtn').addEventListener('click', function() {
+        document.getElementById('forgotPasswordSection').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'block';
+        resettingUser = null;
+    });
+
+    // ============================================================
+    // 🧹 Helpers
+    // ============================================================
+    window.clearUsers = function() {
+        localStorage.removeItem('jpts_users');
+        localStorage.removeItem('currentUser');
+        console.log('✅ All users cleared!');
+        location.reload();
     };
+
+    window.viewUsers = function() {
+        console.log('📋 All users:', JSON.parse(localStorage.getItem('jpts_users')) || []);
+    };
+
+    console.log('🏛️ JPTS University Login System Loaded!');
+    console.log('💡 Commands:');
+    console.log('   - clearUsers()  → Clear all users');
+    console.log('   - viewUsers()   → View all users');
+
+    // Show current users
+    if (users.length > 0) {
+        console.log(`📋 ${users.length} users in system`);
+    } else {
+        console.log('📋 No users yet. Sign up to get started!');
+    }
 </script>
 </body>
+</html>
+    
