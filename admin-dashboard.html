@@ -10,9 +10,10 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
         .navbar { background: #0a1e3c; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
-        .sidebar { width: 260px; background: white; position: fixed; height: 100%; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar { width: 260px; background: white; position: fixed; height: 100%; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); overflow-y: auto; }
         .sidebar-item { padding: 12px 15px; margin: 5px 0; cursor: pointer; border-radius: 10px; color: #333; transition: 0.3s; }
         .sidebar-item:hover, .sidebar-item.active { background: #0a1e3c; color: white; }
+        .sidebar-item i { width: 25px; }
         .main-content { margin-left: 280px; padding: 25px; }
         .data-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .stat-card { background: white; border-radius: 15px; padding: 20px; text-align: center; display: inline-block; width: 23%; margin: 1%; }
@@ -27,6 +28,10 @@
         .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
         .form-control, .form-select { border-radius: 10px; padding: 10px; margin-bottom: 10px; width: 100%; }
         .modal-content { border-radius: 15px; }
+        .badge-pending { background: #ffc107; color: #333; padding: 5px 10px; border-radius: 20px; font-size: 12px; }
+        .badge-approved { background: #28a745; color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; }
+        .badge-rejected { background: #dc3545; color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; }
+        .badge-student { background: #17a2b8; color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; }
         @media (max-width: 768px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
         .toast-msg { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; animation: slideIn 0.3s ease; border-radius: 10px; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -40,11 +45,13 @@
     
     <div class="sidebar">
         <h5 class="text-center mb-3">Admin Menu</h5>
-        <div class="sidebar-item active" onclick="loadDashboard()">Dashboard</div>
-        <div class="sidebar-item" onclick="loadStudents()">Manage Students</div>
-        <div class="sidebar-item" onclick="loadCourses()">Manage Courses</div>
-        <div class="sidebar-item" onclick="loadResults()">View Results</div>
-        <div class="sidebar-item" onclick="loadAnnouncements()">Send Announcement</div>
+        <div class="sidebar-item active" onclick="loadDashboard()"><i class="fas fa-chart-pie"></i> Dashboard</div>
+        <div class="sidebar-item" onclick="loadApprovals()"><i class="fas fa-user-check"></i> Approvals <span id="pendingBadge" class="badge bg-danger" style="float:right;"></span></div>
+        <div class="sidebar-item" onclick="loadStudents()"><i class="fas fa-users"></i> Manage Students</div>
+        <div class="sidebar-item" onclick="loadCourses()"><i class="fas fa-book"></i> Manage Courses</div>
+        <div class="sidebar-item" onclick="loadResults()"><i class="fas fa-file-alt"></i> View Results</div>
+        <div class="sidebar-item" onclick="loadAnnouncements()"><i class="fas fa-bullhorn"></i> Send Announcement</div>
+        <div class="sidebar-item" onclick="loadAllUsers()"><i class="fas fa-users-cog"></i> All Users</div>
     </div>
     
     <div class="main-content" id="mainContent">
@@ -114,6 +121,9 @@
         if (!currentUser || currentUser.role !== 'admin') window.location.href = 'login.html';
         document.getElementById('adminName').innerHTML = currentUser.name;
         
+        // Get all users from localStorage
+        let allUsers = JSON.parse(localStorage.getItem('jpts_users')) || [];
+        
         let allStudents = JSON.parse(localStorage.getItem('all_students')) || [];
         let allCourses = JSON.parse(localStorage.getItem('all_courses')) || [
             { code: "CSC101", title: "Introduction to Computer Science", credit: 3, dept: "Computer Science", level: "100" },
@@ -126,6 +136,8 @@
             localStorage.setItem('all_students', JSON.stringify(allStudents));
             localStorage.setItem('all_courses', JSON.stringify(allCourses));
             localStorage.setItem('global_announcements', JSON.stringify(allNotifications));
+            // Also save users back
+            localStorage.setItem('jpts_users', JSON.stringify(allUsers));
         }
         
         function showMessage(msg, type) {
@@ -136,23 +148,314 @@
             setTimeout(() => toast.remove(), 3000);
         }
         
+        function getPendingCount() {
+            return allUsers.filter(u => u.role !== 'student' && !u.approved).length;
+        }
+        
+        function updateBadge() {
+            const count = getPendingCount();
+            const badge = document.getElementById('pendingBadge');
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
+        // ============================================================
+        // 📊 DASHBOARD
+        // ============================================================
         function loadDashboard() {
+            setActive('Dashboard');
+            const pending = getPendingCount();
             document.getElementById('mainContent').innerHTML = `
                 <div class="data-card">
                     <h5>Admin Dashboard</h5>
                     <p>Welcome, ${currentUser.name}!</p>
                     <div class="row">
-                        <div class="col-md-4"><div class="stat-card"><h2>${allStudents.length}</h2><p>Students</p></div></div>
-                        <div class="col-md-4"><div class="stat-card"><h2>${allCourses.length}</h2><p>Courses</p></div></div>
-                        <div class="col-md-4"><div class="stat-card"><h2>${allNotifications.length}</h2><p>Announcements Sent</p></div></div>
+                        <div class="col-md-3"><div class="stat-card"><h2>${allStudents.length}</h2><p>Students</p></div></div>
+                        <div class="col-md-3"><div class="stat-card"><h2>${allCourses.length}</h2><p>Courses</p></div></div>
+                        <div class="col-md-3"><div class="stat-card"><h2>${allNotifications.length}</h2><p>Announcements</p></div></div>
+                        <div class="col-md-3"><div class="stat-card"><h2 style="color:#dc3545;">${pending}</h2><p>Pending Approvals</p></div></div>
                     </div>
                     <button class="btn-primary" onclick="showAddStudentModal()"><i class="fas fa-user-plus"></i> Add Student</button>
                     <button class="btn-success" onclick="showAddCourseModal()"><i class="fas fa-book-plus"></i> Add Course</button>
                     <button class="btn-warning" onclick="showAnnouncementModal()"><i class="fas fa-bullhorn"></i> Send Announcement</button>
+                    <button class="btn-primary" onclick="loadApprovals()" style="background:#dc3545;"><i class="fas fa-user-check"></i> Pending Approvals (${pending})</button>
                 </div>
             `;
         }
         
+        // ============================================================
+        // ✅ APPROVALS (SUPER ADMIN ONLY)
+        // ============================================================
+        function loadApprovals() {
+            setActive('Approvals');
+            const pendingUsers = allUsers.filter(u => u.role !== 'student' && !u.approved);
+            const approvedStaff = allUsers.filter(u => u.role !== 'student' && u.approved);
+            
+            let html = `
+                <div class="data-card">
+                    <h5><i class="fas fa-user-check me-2"></i>Super Admin - User Approvals</h5>
+                    <p>Manage all staff account requests. Students are auto-approved.</p>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4"><div class="stat-card"><h2 style="color:#ffc107;">${pendingUsers.length}</h2><p>Pending</p></div></div>
+                        <div class="col-md-4"><div class="stat-card"><h2 style="color:#28a745;">${approvedStaff.length}</h2><p>Approved Staff</p></div></div>
+                        <div class="col-md-4"><div class="stat-card"><h2 style="color:#17a2b8;">${allUsers.filter(u => u.role === 'student').length}</h2><p>Students (Auto)</p></div></div>
+                    </div>
+            `;
+            
+            // Pending Users Table
+            html += `<h6 class="mt-3">Pending Approvals</h6>`;
+            html += `<div class="table-responsive"><table class="table"><thead>
+                <tr><th>Name</th><th>Email</th><th>ID</th><th>Role</th><th>Dept</th><th>Action</th></tr>
+            </thead><tbody>`;
+            
+            if (pendingUsers.length === 0) {
+                html += `<tr><td colspan="6" class="text-center text-success">✅ No pending approvals! All staff are approved.</td></tr>`;
+            } else {
+                pendingUsers.forEach((u, index) => {
+                    html += `<tr>
+                        <td>${u.name}</td>
+                        <td>${u.email}</td>
+                        <td>${u.id}</td>
+                        <td><span class="badge-pending">${u.role}</span></td>
+                        <td>${u.dept}</td>
+                        <td>
+                            <button class="btn-success" onclick="approveUser(${index})" style="padding:5px 15px;margin:2px;">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="btn-danger" onclick="rejectUser(${index})" style="padding:5px 15px;margin:2px;">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            html += `</tbody></table></div>`;
+            
+            // Approved Staff Table
+            html += `<h6 class="mt-4">Approved Staff</h6>`;
+            html += `<div class="table-responsive"><table class="table"><thead>
+                <tr><th>Name</th><th>Email</th><th>ID</th><th>Role</th><th>Dept</th></tr>
+            </thead><tbody>`;
+            
+            if (approvedStaff.length === 0) {
+                html += `<tr><td colspan="5" class="text-center">No approved staff yet.</td></tr>`;
+            } else {
+                approvedStaff.forEach(u => {
+                    html += `<tr>
+                        <td>${u.name}</td>
+                        <td>${u.email}</td>
+                        <td>${u.id}</td>
+                        <td><span class="badge-approved">${u.role}</span></td>
+                        <td>${u.dept}</td>
+                    </tr>`;
+                });
+            }
+            html += `</tbody></table></div>`;
+            
+            html += `</div>`;
+            document.getElementById('mainContent').innerHTML = html;
+            updateBadge();
+        }
+        
+        // ✅ Approve User
+        function approveUser(index) {
+            const pendingUsers = allUsers.filter(u => u.role !== 'student' && !u.approved);
+            const user = pendingUsers[index];
+            const actualIndex = allUsers.findIndex(u => u.email === user.email && u.id === user.id);
+            
+            if (actualIndex !== -1) {
+                allUsers[actualIndex].approved = true;
+                saveData();
+                showMessage(`✅ ${user.name} has been APPROVED! They can now login.`, 'success');
+                loadApprovals();
+                updateBadge();
+            }
+        }
+        
+        // ❌ Reject User
+        function rejectUser(index) {
+            const pendingUsers = allUsers.filter(u => u.role !== 'student' && !u.approved);
+            const user = pendingUsers[index];
+            const actualIndex = allUsers.findIndex(u => u.email === user.email && u.id === user.id);
+            
+            if (actualIndex !== -1) {
+                if (confirm(`Are you sure you want to REJECT ${user.name}? This will delete their account.`)) {
+                    allUsers.splice(actualIndex, 1);
+                    saveData();
+                    showMessage(`❌ ${user.name} has been REJECTED and removed.`, 'danger');
+                    loadApprovals();
+                    updateBadge();
+                }
+            }
+        }
+        
+        // ============================================================
+        // 📚 MANAGE STUDENTS
+        // ============================================================
+        function loadStudents() {
+            setActive('Manage Students');
+            let html = `<div class="data-card"><h5>Student Management</h5>
+                        <button class="btn-primary" onclick="showAddStudentModal()">+ Add Student</button>
+                        <div class="table-responsive mt-3"><table class="table"><thead><tr><th>Name</th><th>Matric No</th><th>Email</th><th>Dept</th><th>Action</th></tr></thead><tbody>`;
+            if (allStudents.length === 0) {
+                html += `<tr><td colspan="5" class="text-center">No students yet. Add one!</td></tr>`;
+            } else {
+                allStudents.forEach((s, index) => {
+                    html += `<tr>
+                        <td>${s.name}</td>
+                        <td>${s.id}</td>
+                        <td>${s.email}</td>
+                        <td>${s.dept}</td>
+                        <td><button class="btn-danger" onclick="deleteStudent(${index})">Delete</button></td>
+                    </tr>`;
+                });
+            }
+            html += `</tbody></table></div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        function deleteStudent(index) {
+            if (confirm("Delete this student?")) {
+                allStudents.splice(index, 1);
+                saveData();
+                showMessage("Student deleted", "success");
+                loadStudents();
+            }
+        }
+        
+        // ============================================================
+        // 📚 MANAGE COURSES
+        // ============================================================
+        function loadCourses() {
+            setActive('Manage Courses');
+            let html = `<div class="data-card"><h5>Course Management</h5>
+                        <button class="btn-success" onclick="showAddCourseModal()">+ Add Course</button>
+                        <div class="table-responsive mt-3"><table class="table"><thead><tr><th>Code</th><th>Title</th><th>Credit</th><th>Dept</th><th>Action</th></tr></thead><tbody>`;
+            if (allCourses.length === 0) {
+                html += `<tr><td colspan="5" class="text-center">No courses yet. Add one!</td></tr>`;
+            } else {
+                allCourses.forEach((c, index) => {
+                    html += `<tr>
+                        <td>${c.code}</td>
+                        <td>${c.title}</td>
+                        <td>${c.credit}</td>
+                        <td>${c.dept}</td>
+                        <td><button class="btn-danger" onclick="deleteCourse(${index})">Delete</button></td>
+                    </tr>`;
+                });
+            }
+            html += `</tbody></table></div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        function deleteCourse(index) {
+            if (confirm("Delete this course?")) {
+                allCourses.splice(index, 1);
+                saveData();
+                showMessage("Course deleted", "success");
+                loadCourses();
+            }
+        }
+        
+        // ============================================================
+        // 📊 VIEW RESULTS
+        // ============================================================
+        function loadResults() {
+            setActive('View Results');
+            let publishedResults = JSON.parse(localStorage.getItem('published_results')) || [];
+            let html = `<div class="data-card"><h5>Published Results</h5>
+                        <div class="table-responsive"><table class="table"><thead>
+                        <tr><th>Student</th><th>Course</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th></tr>
+                        </thead><tbody>`;
+            if (publishedResults.length === 0) {
+                html += `<tr><td colspan="6" class="text-center">No results published yet.</td></tr>`;
+            } else {
+                publishedResults.forEach(r => {
+                    html += `<tr>
+                        <td>${r.studentName}</td>
+                        <td>${r.courseCode}</td>
+                        <td>${r.ca}</td>
+                        <td>${r.exam}</td>
+                        <td><strong>${r.total}</strong></td>
+                        <td><span class="badge bg-success">${r.grade}</span></td>
+                    </tr>`;
+                });
+            }
+            html += `</tbody></table></div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        // ============================================================
+        // 📢 ANNOUNCEMENTS
+        // ============================================================
+        function loadAnnouncements() {
+            setActive('Send Announcement');
+            let html = `<div class="data-card"><h5>Announcement History</h5>
+                        <button class="btn-warning" onclick="showAnnouncementModal()"><i class="fas fa-plus"></i> New Announcement</button>
+                        <div class="table-responsive mt-3"><table class="table"><thead>
+                        <tr><th>Date</th><th>Title</th><th>Message</th><th>Sent To</th></tr>
+                        </thead><tbody>`;
+            if (allNotifications.length === 0) {
+                html += `<tr><td colspan="4" class="text-center">No announcements sent yet.</td></tr>`;
+            } else {
+                allNotifications.slice().reverse().forEach(n => {
+                    let targetText = n.target === 'all' ? 'All Students' : n.target.replace('_', ' ').toUpperCase();
+                    html += `<tr>
+                        <td>${new Date(n.date).toLocaleDateString()}</td>
+                        <td><strong>${n.title}</strong></td>
+                        <td>${n.message}</td>
+                        <td>${targetText}</td>
+                    </tr>`;
+                });
+            }
+            html += `</tbody></table></div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        // ============================================================
+        // 👥 ALL USERS
+        // ============================================================
+        function loadAllUsers() {
+            setActive('All Users');
+            let html = `<div class="data-card"><h5>All Users</h5>
+                        <div class="table-responsive"><table class="table"><thead>
+                        <tr><th>Name</th><th>Email</th><th>ID</th><th>Role</th><th>Dept</th><th>Status</th></tr>
+                        </thead><tbody>`;
+            
+            if (allUsers.length === 0) {
+                html += `<tr><td colspan="6" class="text-center">No users found.</td></tr>`;
+            } else {
+                allUsers.forEach(u => {
+                    let status = '';
+                    if (u.role === 'student') {
+                        status = '<span class="badge-student">Auto-Approved</span>';
+                    } else if (u.approved) {
+                        status = '<span class="badge-approved">Approved</span>';
+                    } else {
+                        status = '<span class="badge-pending">Pending</span>';
+                    }
+                    html += `<tr>
+                        <td>${u.name}</td>
+                        <td>${u.email}</td>
+                        <td>${u.id}</td>
+                        <td><strong>${u.role}</strong></td>
+                        <td>${u.dept}</td>
+                        <td>${status}</td>
+                    </tr>`;
+                });
+            }
+            html += `</tbody></table></div></div>`;
+            document.getElementById('mainContent').innerHTML = html;
+        }
+        
+        // ============================================================
+        // 🛠️ MODAL FUNCTIONS
+        // ============================================================
         function showAddStudentModal() { $('#studentModal').modal('show'); }
         function showAddCourseModal() { $('#courseModal').modal('show'); }
         function showAnnouncementModal() { $('#announcementModal').modal('show'); }
@@ -204,7 +507,6 @@
                 return;
             }
             
-            // Create announcement object
             const announcement = {
                 id: Date.now(),
                 title: title,
@@ -217,10 +519,7 @@
             allNotifications.push(announcement);
             saveData();
             
-            // Also add to each student's personal notifications
             let studentNotifications = JSON.parse(localStorage.getItem('student_notifications')) || [];
-            
-            // Filter students based on target
             let targetStudents = [];
             if (target === 'all') {
                 targetStudents = allStudents;
@@ -228,7 +527,6 @@
                 targetStudents = allStudents.filter(s => s.dept.toLowerCase().replace(' ', '_') === target);
             }
             
-            // Add notification to each student's list
             targetStudents.forEach(student => {
                 studentNotifications.unshift({
                     id: Date.now() + Math.random(),
@@ -249,111 +547,16 @@
             loadAnnouncements();
         }
         
-        function loadStudents() {
-            let html = `<div class="data-card"><h5>Student Management</h5>
-                        <button class="btn-primary" onclick="showAddStudentModal()">+ Add Student</button>
-                        <div class="table-responsive mt-3"><table class="table"><thead><tr><th>Name</th><th>Matric No</th><th>Email</th><th>Dept</th><th>Action</th></td></thead><tbody>`;
-            if (allStudents.length === 0) {
-                html += `<tr><td colspan="5" class="text-center">No students yet. Add one!</p></div></tr>`;
-            } else {
-                allStudents.forEach((s, index) => {
-                    html += `<tr>
-                        <td>${s.name}</p></div>
-                        <td>${s.id}</p></div>
-                        <td>${s.email}</p></div>
-                        <td>${s.dept}</p></div>
-                        <td><button class="btn-danger" onclick="deleteStudent(${index})">Delete</button></p></div>
-                    </tr>`;
-                });
-            }
-            html += `</tbody>}</div></div>`;
-            document.getElementById('mainContent').innerHTML = html;
-        }
-        
-        function deleteStudent(index) {
-            if (confirm("Delete this student?")) {
-                allStudents.splice(index, 1);
-                saveData();
-                showMessage("Student deleted", "success");
-                loadStudents();
-            }
-        }
-        
-        function loadCourses() {
-            let html = `<div class="data-card"><h5>Course Management</h5>
-                        <button class="btn-success" onclick="showAddCourseModal()">+ Add Course</button>
-                        <div class="table-responsive mt-3"><table class="table"><thead><tr><th>Code</th><th>Title</th><th>Credit</th><th>Dept</th><th>Action</th></tr></thead><tbody>`;
-            if (allCourses.length === 0) {
-                html += `<tr><td colspan="5" class="text-center">No courses yet. Add one!</p></div></tr>`;
-            } else {
-                allCourses.forEach((c, index) => {
-                    html += `<tr>
-                        <td>${c.code}</p></div>
-                        <td>${c.title}</p></div>
-                        <td>${c.credit}</p></div>
-                        <td>${c.dept}</p></div>
-                        <td><button class="btn-danger" onclick="deleteCourse(${index})">Delete</button></p></div>
-                    </tr>`;
-                });
-            }
-            html += `</tbody>}</div></div>`;
-            document.getElementById('mainContent').innerHTML = html;
-        }
-        
-        function deleteCourse(index) {
-            if (confirm("Delete this course?")) {
-                allCourses.splice(index, 1);
-                saveData();
-                showMessage("Course deleted", "success");
-                loadCourses();
-            }
-        }
-        
-        function loadResults() {
-            let publishedResults = JSON.parse(localStorage.getItem('published_results')) || [];
-            let html = `<div class="data-card"><h5>Published Results</h5>
-                        <div class="table-responsive"><table class="table"><thead>
-                        <tr><th>Student</th><th>Course</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th>
-                        </thead><tbody>`;
-            if (publishedResults.length === 0) {
-                html += `<tr><td colspan="6" class="text-center">No results published yet.</p></div></tr>`;
-            } else {
-                publishedResults.forEach(r => {
-                    html += `<tr>
-                        <td>${r.studentName}</p></div>
-                        <td>${r.courseCode}</p></div>
-                        <td>${r.ca}</p></div>
-                        <td>${r.exam}</p></div>
-                        <td><strong>${r.total}</strong></p></div>
-                        <td><span class="badge bg-success">${r.grade}</span></p></div>
-                    </tr>`;
-                });
-            }
-            html += `</tbody>}</div></div>`;
-            document.getElementById('mainContent').innerHTML = html;
-        }
-        
-        function loadAnnouncements() {
-            let html = `<div class="data-card"><h5>Announcement History</h5>
-                        <button class="btn-warning" onclick="showAnnouncementModal()"><i class="fas fa-plus"></i> New Announcement</button>
-                        <div class="table-responsive mt-3"><table class="table"><thead>
-                        <tr><th>Date</th><th>Title</th><th>Message</th><th>Sent To</th>
-                        </thead><tbody>`;
-            if (allNotifications.length === 0) {
-                html += `<td><td colspan="4" class="text-center">No announcements sent yet.</p></div></tr>`;
-            } else {
-                allNotifications.slice().reverse().forEach(n => {
-                    let targetText = n.target === 'all' ? 'All Students' : n.target.replace('_', ' ').toUpperCase();
-                    html += `<tr>
-                        <td>${new Date(n.date).toLocaleDateString()}</p></div>
-                        <td><strong>${n.title}</strong></p></div>
-                        <td>${n.message}</p></div>
-                        <td>${targetText}</p></div>
-                    </tr>`;
-                });
-            }
-            html += `</tbody>}</div></div>`;
-            document.getElementById('mainContent').innerHTML = html;
+        // ============================================================
+        // 🧹 HELPERS
+        // ============================================================
+        function setActive(page) {
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(el => {
+                if (el.textContent.trim().includes(page)) {
+                    el.classList.add('active');
+                }
+            });
         }
         
         document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -361,6 +564,9 @@
             window.location.href = 'login.html';
         });
         
+        // Update badge on load
+        updateBadge();
         loadDashboard();
     </script>
 </body>
+</html>
